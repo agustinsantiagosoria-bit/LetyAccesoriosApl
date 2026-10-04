@@ -68,18 +68,19 @@ function obtenerTodosLosRegistros(storeName) {
     });
 }
 
-// Elimina de forma definitiva por ID
+// Elimina de forma definitiva por ID de la base de datos local
 function eliminarRegistro(storeName, id) {
     return new Promise((resolve, reject) => {
         if (!db) return reject("Base de datos no inicializada.");
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         const request = store.delete(id);
-Next 
+
         request.onsuccess = () => resolve(true);
         request.onerror = (e) => reject(e.target.error);
     });
 }
 
-// Inicializar el motor al cargar el archivo de script
+// Inicializar el motor real al cargar el script en el navegador
 inicializarDB().catch(err => console.error("Error al iniciar base de datos real:", err));
+
