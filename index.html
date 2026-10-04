@@ -375,6 +375,7 @@
         </div>
     </div>
     <!-- ====== MODAL: CREAR / MODIFICAR INSUMO REAL ====== -->
+  <!-- ====== MODAL: CREAR / MODIFICAR INSUMO REAL ====== -->
     <div id="modal-alta-insumo" class="modal-overlay hidden">
         <div class="modal-card">
             <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
@@ -401,12 +402,25 @@
                     </div>
                     <div>
                         <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Unidad de Medida</label>
-                        <select id="insumo-real-unidad" class="form-select">
+                        <select id="insumo-real-unidad" onchange="toggleCamposRendimiento()" class="form-select">
                             <option value="xU">Por Unidad (xU)</option>
                             <option value="xM">Por Metro (xM)</option>
                         </select>
                     </div>
                 </div>
+
+<!-- NUEVO: Campos para calcular costo fraccionado por rendimiento (Ocultos inicialmente) -->
+<div id="contenedor-rendimiento" class="hidden" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background-color: #FFF3F8; padding: 12px; border-radius: 12px; border: 1px dashed #F48FB1;">
+    <div>
+        <label style="display: block; font-size: 11px; font-weight: 700; color: #D81B60; text-transform: uppercase; margin-bottom: 4px;">Fracción comprada (M)</label>
+        <input type="number" id="insumo-real-fraccion" step="0.01" min="0.01" placeholder="Ej. 0.5" class="form-input" style="border-color: #F48FB1;" />
+    </div>
+    <div>
+        <label style="display: block; font-size: 11px; font-weight: 700; color: #D81B60; text-transform: uppercase; margin-bottom: 4px;">Rendimiento (Baberos)</label>
+        <input type="number" id="insumo-real-rendimiento" step="1" min="1" placeholder="Ej. 6" class="form-input" style="border-color: #F48FB1;" />
+    </div>
+</div>
+
 
                 <div>
                     <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Distribuidora / Comercio Inicial</label>
@@ -420,6 +434,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- ====== MODAL: COMPARADOR BALANZA ⚖️ (AÑADIR SUCURSALES) ====== -->
     <div id="modal-balanza-sucursales" class="modal-overlay hidden">
@@ -617,33 +632,38 @@
                         </table>
                     </div>
 
-                    <!-- Bloque Analítico Calculadora de Costo y Margen de Ganancia -->
-                    <div style="background: #FFF3EB; border: 1px solid #FFE0B2; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
-                        <div style="display: flex; justify-content: space-between; font-weight: 700; color: #E65100;">
-                            <span>Precio de Producción (Costo):</span>
-                            <span id="calc-costo-total">$0.00</span>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: center; margin-top: 4px;">
-                            <div>
-                                <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 2px;">Margen de Ganancia</label>
-                                <input type="number" id="prod-real-margen" value="100" oninput="calcularPrecioSugeridoReal()" class="form-input" style="background: white; height: 36px;" />
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 2px;">Unidad Margen</label>
-                                <select id="prod-real-tipo-margen" onchange="calcularPrecioSugeridoReal()" class="form-select" style="background: white; height: 36px;">
-                                    <option value="porcentaje">Porcentaje (%)</option>
-                                    <option value="entero">Entero ($)</option>
-                                </select>
-                            </div>
-                        </div>
+<!-- Bloque Analítico Calculadora de Costo y Margen de Ganancia -->
+<div style="background: #FFF3EB; border: 1px solid #FFE0B2; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+    <div style="display: flex; justify-content: space-between; font-weight: 700; color: #E65100;">
+        <span>Precio de Producción (Costo):</span>
+        <span id="calc-costo-total">$0.00</span>
+    </div>
 
-                        <div style="display: flex; justify-content: space-between; font-weight: 700; color: #2E7D32; border-top: 1px dashed #FFE0B2; padding-top: 8px;; padding-top: 6px; font-size: 14px;">
-                            <span>Precio Sugerido Final:</span>
-                            <span id="calc-precio-sugerido">$0.00</span>
-                        </div>
-                    </div>
-                </div>
+    <!-- NUEVO: Campo Estilizado para ingresar la Mano de Obra -->
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px dashed #FFD1B3; padding-top: 8px;">
+        <label style="font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase;">Mano de Obra ($)</label>
+        <input type="number" id="prod-real-mano-obra" placeholder="Ej. 500" oninput="calcularPrecioSugeridoReal()" class="form-input" style="background: white; height: 36px; width: 110px; text-align: right; padding-right: 8px;" min="0" step="0.01" />
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: center; border-top: 1px dashed #FFD1B3; padding-top: 8px;">
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 2px;">Margen de Ganancia</label>
+            <input type="number" id="prod-real-margen" value="100" oninput="calcularPrecioSugeridoReal()" class="form-input" style="background: white; height: 36px;" />
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 2px;">Unidad Margen</label>
+            <select id="prod-real-tipo-margen" onchange="calcularPrecioSugeridoReal()" class="form-select" style="background: white; height: 36px;">
+                <option value="porcentaje">Porcentaje (%)</option>
+                <option value="entero">Entero ($)</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-weight: 700; color: #2E7D32; border-top: 1px dashed #FFE0B2; padding-top: 6px; font-size: 14px;">
+        <span>Precio Sugerido Final:</span>
+        <span id="calc-precio-sugerido">$0.00</span>
+    </div>
+</div>
 
                 <!-- Botones de Guardar / Cancelar -->
                 <div style="display: flex; gap: 10px; margin-top: 6px;">

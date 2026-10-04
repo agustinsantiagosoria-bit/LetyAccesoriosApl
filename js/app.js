@@ -138,21 +138,40 @@ async function guardarInsumoReal(event) {
     const unidad = document.getElementById("insumo-real-unidad").value;
     const sucursal = document.getElementById("insumo-real-sucursal").value.trim();
 
+    // NUEVO: Capturar valores de rendimiento (si no existen o son 0, usamos 1 por defecto para no romper la división)
+    const fraccionInput = document.getElementById("insumo-real-fraccion");
+    const rendimientoInput = document.getElementById("insumo-real-rendimiento");
+    
+    const fraccion = fraccionInput ? parseFloat(fraccionInput.value) || 1 : 1;
+    const rendimiento = rendimientoInput ? parseFloat(rendimientoInput.value) || 1 : 1;
+
+    // MATEMÁTICA: Si el usuario ingresa rendimiento, calculamos el costo unitario final.
+    // Ej: (14000 * 0.5) / 6 = 1166.66
+    const precioCalculado = (precio * fraccion) / rendimiento;
+
     let objetoInsumo;
 
     if (idStr) {
         // Modo modificación: rescatar el anterior para no perder la balanza de proveedores
         const idInt = parseInt(idStr);
         const viejo = _todosLosInsumos.find(i => i.id === idInt);
-        objetoInsumo = { ...viejo, nombre, unidad };
+        
+        // En modo edición actualizamos también el precio calculado según rendimiento
+        objetoInsumo = { 
+            ...viejo, 
+            nombre, 
+            unidad,
+            precioBase: precioCalculado 
+        };
     } else {
         // Nuevo registro base
         objetoInsumo = {
             nombre: nombre,
-            precioBase: precio,
+            precioBase: precioCalculado, // Guardamos el valor unitario exacto ya procesado
             unidad: unidad,
             sucursalInicial: sucursal,
-            sucursales: [{ nombre: sucursal, precio: precio }] // Primera sucursal de la balanza
+            // Guardamos el precio unitario también en el histórico de la sucursal para la balanza
+            sucursales: [{ nombre: sucursal, precio: precioCalculado }] 
         };
     }
 
@@ -160,6 +179,7 @@ async function guardarInsumoReal(event) {
     cerrarModalNuevoInsumo();
     await cargarTodoElSistemaReal();
 }
+
 
 function abrirModificarInsumo(id) {
     const insumo = _todosLosInsumos.find(i => i.id === id);
@@ -175,6 +195,7 @@ function abrirModificarInsumo(id) {
 
     document.getElementById("titulo-modal-insumo").innerText = "Modificar Nombre de Insumo";
     document.getElementById("modal-alta-insumo").classList.remove("hidden");
+    toggleCamposRendimiento(); // Mostrar campos de fracción y rendimiento si es necesario
 }
 
 async function ejecutarEliminarInsumo(id) {
@@ -401,7 +422,6 @@ function agregarInsumoARecetaTemporal() {
     renderizarRecetaTemporalFormulario();
     calcularPrecioSugeridoReal();
 }
-
 function renderizarRecetaTemporalFormulario() {
     const tbody = document.getElementById("tbody-receta-temporal");
     if (!tbody) return;
@@ -419,12 +439,16 @@ function renderizarRecetaTemporalFormulario() {
         `;
         tbody.appendChild(fila);
     });
-        // Reemplazo en línea 408 para que no rompa la ejecución
+
+    // Reemplazo en línea 408 para que no rompa la ejecución
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 
+    // NUEVO: Lanzar automáticamente el recálculo dinámico de costos y mano de obra
+    calcularPrecioSugeridoReal();
 }
+
 
 function eliminarLineaRecetaTemporal(index) {
     _recetaTemporalProducto.splice(index, 1);
@@ -437,25 +461,34 @@ function calcularPrecioSugeridoReal() {
     const labelSugerido = document.getElementById("calc-precio-sugerido");
     const inputMargen = document.getElementById("prod-real-margen");
     const selectTipo = document.getElementById("prod-real-tipo-margen");
+    // NUEVO: Instanciar el input de Mano de Obra
+    const inputManoObra = document.getElementById("prod-real-mano-obra");
 
     if (!labelCosto || !labelSugerido || !inputMargen || !selectTipo) return;
 
-    // Sumar el costo parcial de todas las líneas añadidas
+    // Sumar el costo parcial de todas las líneas añadidas de insumos
     const costoTotal = _recetaTemporalProducto.reduce((sum, linea) => sum + linea.costoParcial, 0);
     labelCosto.innerText = `$${costoTotal.toFixed(2)} ARS`;
 
+    // NUEVO: Capturar el valor numérico de la Mano de Obra
+    const manoObra = inputManoObra ? parseFloat(inputManoObra.value) || 0 : 0;
+
+    // MATEMÁTICA: La base para calcular la ganancia ahora es Insumos + Mano de Obra
+    const costoMasManoObra = costoTotal + manoObra;
+
     const margen = parseFloat(inputMargen.value) || 0;
     const tipo = selectTipo.value;
-    let precioSugerido = costoTotal;
+    let precioSugerido = costoMasManoObra;
 
     if (tipo === "porcentaje") {
-        precioSugerido = costoTotal + (costoTotal * (margen / 100));
+        precioSugerido = costoMasManoObra + (costoMasManoObra * (margen / 100));
     } else {
-        precioSugerido = costoTotal + margen;
+        precioSugerido = costoMasManoObra + margen;
     }
 
     labelSugerido.innerText = `$${precioSugerido.toFixed(2)} ARS`;
 }
+
 
 // 4. CONTROL DE APERTURA, MODIFICACIÓN Y PERSISTENCIA FINAL DE PRODUCTOS
 // MODIFICACIÓN QUIRÚRGICA: Corrección de caracteres de escape en el alta de productos
@@ -961,4 +994,79 @@ async function renderizarPestañaPrincipalResumen() {
         await cargarSelectorProductosVenta();
     }
     console.log("🌸 Gráfica semanal real y Dashboard sincronizados con éxito.");
+}
+// Función para mostrar u ocultar dinámicamente los campos de rendimiento en el modal
+function toggleCamposRendimiento() {
+    const unidad = document.getElementById("insumo-real-unidad").value;
+    const contenedor = document.getElementById("contenedor-rendimiento");
+    const inputFraccion = document.getElementById("insumo-real-fraccion");
+    const inputRendimiento = document.getElementById("insumo-real-rendimiento");
+
+    if (unidad === "xM") {
+        contenedor.classList.remove("hidden");
+        // Hacemos requeridos estos campos solo si se calcula por metro
+        inputFraccion.required = true;
+        inputRendimiento.required = true;
+    } else {
+        contenedor.classList.add("hidden");
+        inputFraccion.required = false;
+        inputRendimiento.required = false;
+        // Limpiamos los valores si cambia a unidad común
+        inputFraccion.value = "";
+        inputRendimiento.value = "";
+    }
+}
+
+// Función principal modificada para realizar el cálculo matemático antes de persistir los datos
+async function guardarInsumoReal(event) {
+    event.preventDefault();
+
+    const idStr = document.getElementById("insumo-real-id").value;
+    const nombre = document.getElementById("insumo-real-nombre").value.trim();
+    const precio = parseFloat(document.getElementById("insumo-real-precio").value) || 0;
+    const unidad = document.getElementById("insumo-real-unidad").value;
+    const sucursal = document.getElementById("insumo-real-sucursal").value.trim();
+
+    // Capturamos los nuevos inputs de cálculo matemático por rendimiento
+    const fraccionVal = parseFloat(document.getElementById("insumo-real-fraccion").value);
+    const rendimientoVal = parseFloat(document.getElementById("insumo-real-rendimiento").value);
+
+    // LÓGICA MATEMÁTICA: Si la unidad es por Metro ("xM"), dividimos el costo de la fracción por la cantidad que rinde.
+    // Ej de Gabardina: (14000 * 0.5) / 6 = 1166.666...
+    // Si es "xU", se obvia y el multiplicador es 1 por defecto.
+    let precioCalculado = precio;
+    if (unidad === "xM" && !isNaN(fraccionVal) && !isNaN(rendimientoVal) && rendimientoVal > 0) {
+        precioCalculado = (precio * fraccionVal) / rendimientoVal;
+    }
+
+    let objetoInsumo;
+
+    if (idStr) {
+        // Modo modificación: rescatar el anterior para no perder la balanza de proveedores
+        const idInt = parseInt(idStr);
+        const viejo = _todosLosInsumos.find(i => i.id === idInt);
+        objetoInsumo = { 
+            ...viejo, 
+            nombre, 
+            unidad,
+            precioBase: precioCalculado // Actualiza el precio base recalculado por rendimiento
+        };
+    } else {
+        // Nuevo registro base
+        objetoInsumo = {
+            nombre: nombre,
+            precioBase: precioCalculado, // Guardamos la unidad de costo final limpia de forma formateada ($)
+            unidad: unidad,
+            sucursalInicial: sucursal,
+            sucursales: [{ nombre: sucursal, precio: precioCalculado }] // Primera sucursal de la balanza con precio unitario
+        };
+    }
+
+    await guardarRegistro("insumos", objetoInsumo);
+    
+    // Resetear visualmente el modal al cerrar para la próxima apertura limpia
+    document.getElementById("contenedor-rendimiento").classList.add("hidden");
+    
+    cerrarModalNuevoInsumo();
+    await cargarTodoElSistemaReal();
 }
