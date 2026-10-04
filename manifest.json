@@ -1,0 +1,17 @@
+{
+  "short_name": "LetyAccesorios",
+  "name": "Lety Accesorios - Gestión Integral",
+  "icons": [
+    {
+      "src": "https://flaticon.com",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#FFF5F7",
+  "theme_color": "#FCE4EC",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}
