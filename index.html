@@ -429,9 +429,13 @@
                     <i data-lucide="scale" style="color: #1E88E5; width: 18px; height: 18px;"></i>
                     <h3 id="balanza-insumo-titulo" style="font-size: 15px; font-weight: 700; color: #1565C0;">Comparador de Sucursales</h3>
                 </div>
-                <button type="button" onclick="cerrarModalBalanza()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-                </button>
+                <!-- Botón de Cierre Inferior para Cancelar/Salir del Comparador -->
+                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                    <button type="button" onclick="cerrarModalBalanza()" style="width: 100%; background-color: #F5F5F5; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand'; color: #4A3E3D;">
+                        Cerrar Comparador
+                    </button>
+                </div>
+
             </div>
             
             <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">

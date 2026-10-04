@@ -635,6 +635,7 @@ function agregarLineaAlCarritoTemporal() {
     renderizarCarritoMostrador();
 }
 
+// CORREGIDO: Inyección nativa de la columna con el tacho de basura para vaciar ítems del carrito
 function renderizarCarritoMostrador() {
     const tbody = document.getElementById("tbody-carrito-mostrador");
     const labelTotal = document.getElementById("label-total-carrito-mostrador");
@@ -643,25 +644,31 @@ function renderizarCarritoMostrador() {
     tbody.innerHTML = "";
     let totalAcumulado = 0;
 
+    if (_carritoMostradorTemporal.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:12px; color:#999999; font-size:12px;">Carrito vacío</td></tr>`;
+        labelTotal.innerText = "\$ 0.00 ARS";
+        return;
+    }
+
     _carritoMostradorTemporal.forEach((item, index) => {
         totalAcumulado += item.subtotal;
         const fila = document.createElement("tr");
         fila.innerHTML = `
-            <td style="padding: 6px 10px; font-weight:600;">${item.nombre} x ${item.cantidad}u</td>
-            <td style="padding: 6px 10px; text-align: right; font-weight:700; color:#C55A11;">$${item.subtotal.toFixed(2)}</td>
-            <td style="padding: 6px 10px; text-align: center;">
-                <button type="button" onclick="eliminarLineaCarritoMostrador(${index})" class="row-btn" style="color:#E53935; padding:2px;"><i data-lucide="x" style="width:14px; height:14px;"></i></button>
+            <td style="padding: 8px 10px; font-weight:600; color:#4A3E3D;">${item.nombre} x ${item.cantidad}u</td>
+            <td style="padding: 8px 10px; text-align: right; font-weight:700; color:#C55A11;">$${item.subtotal.toFixed(2)}</td>
+            <td style="padding: 8px 10px; text-align: center;">
+                <!-- Botón nativo con SVG para remover este artículo específico de la lista -->
+                <button type="button" onclick="eliminarLineaCarritoMostrador(${index})" class="row-btn" style="color:#E53935; background:transparent; border:none; cursor:pointer; padding:2px; display:inline-flex; align-items:center; justify-content:center;" title="Quitar del ticket">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
             </td>
         `;
         tbody.appendChild(fila);
     });
 
     labelTotal.innerText = `$ ${totalAcumulado.toFixed(2)} ARS`;
-    if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
 }
 
-}
 
 function eliminarLineaCarritoMostrador(index) {
     _carritoMostradorTemporal.splice(index, 1);
@@ -887,36 +894,71 @@ async function renderizarPestañaPrincipalResumen() {
     }
 
     if (alertasCountLabel) alertasCountLabel.innerText = contadorAlertas;
-    // Calcular las ventas reales del día en curso
-    let ahoraStr = new Date().toDateString();
+
+    // ====== CÁCULO Y RENDERIZADO DEL GRÁFICO SEMANAL REAL DE BARRAS ======
+    let ahora = new Date();
     let totalHoy = 0;
+    let diasSemana = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
+    let montos7Dias = [0, 0, 0, 0, 0, 0, 0]; // Inicializar con ceros para los últimos 7 días
+    let etiquetas7Dias = [];
 
-    _todasLasVentas.forEach(v => {
-        if (!v.activa) return;
-        if (new Date(v.fecha).toDateString() === ahoraStr) {
-            totalHoy += v.total;
-        }
-    });
-
-    // Inyectar valores reales en pesos argentinos
-    if (ventasHoyLabel) {
-        ventasHoyLabel.innerText = `$${totalHoy.toFixed(2)} ARS`;
+    // Recorrer los últimos 7 días hacia atrás de forma cronológica
+    for (let i = 6; i >= 0; i--) {
+        let d = new Date();
+        d.setDate(ahora.getDate() - i);
+        etiquetas7Dias.push(`${diasSemana[d.getDay()]} ${d.getDate()}`);
+        
+        // Sumar todas las ventas asentadas que caigan en este día exacto
+        _todasLasVentas.forEach(v => {
+            if (v.activa && new Date(v.fecha).toDateString() === d.toDateString()) {
+                montos7Dias[6 - i] += v.total;
+                if (i === 0) totalHoy += v.total; // Total de la caja del día actual
+            }
+        });
     }
-    
+
+    // Inyectar los valores reales analizados en pesos argentinos
+    if (ventasHoyLabel) ventasHoyLabel.innerText = `$${totalHoy.toFixed(2)} ARS`;
     if (pedidosActivosLabel) {
-        // Cuenta cuántos productos reales están por debajo de su stock mínimo de seguridad
-        const criticos = _todosLosProductos.filter(p => (parseInt(p.stock) || 0) <= (parseInt(p.minimo) || 0));
-        pedidosActivosLabel.innerText = criticos.length;
+        pedidosActivosLabel.innerText = _todosLosProductos.filter(p => (parseInt(p.stock) || 0) <= (parseInt(p.minimo) || 0)).length;
     }
 
-    // Mantener sincronizado el selector del carrito multiproducto de mostrador
+    // Dibujar y estirar dinámicamente las barras pastel según los totales
+    const contenedorGrafico = document.querySelector(".chart-container");
+    if (contenedorGrafico) {
+        // Encontrar el día con mayor recaudación para usarlo de escala límite (evita división por cero)
+        let maxMonto = Math.max(...montos7Dias, 1000); 
+        
+        contenedorGrafico.innerHTML = `
+            <div class="chart-line-bg"><div></div><div></div><div></div><div></div></div>
+        `;
+        
+        montos7Dias.forEach((monto, idx) => {
+            // El alto de la barra se ajusta de forma porcentual (mínimo 10px, máximo 90px)
+            let alturaPorcentaje = Math.min(90, Math.max(10, (monto / maxMonto) * 90));
+            let esHoy = idx === 6;
+
+            const columnaWrapper = document.createElement("div");
+            columnaWrapper.className = "chart-bar-wrapper";
+            columnaWrapper.style.display = "flex";
+            columnaWrapper.style.flexDirection = "column";
+            columnaWrapper.style.alignItems = "center";
+            columnaWrapper.style.gap = "6px";
+            columnaWrapper.style.width = "100%";
+            columnaWrapper.style.zIndex = "10";
+
+            columnaWrapper.innerHTML = `
+                <span style="font-size: 10px; font-weight: 700; color: #4A3E3D;">$${monto.toFixed(0)}</span>
+                <div class="chart-bar" style="height: ${alturaPorcentaje}px; background-color: ${esHoy ? '#D81B60' : '#F48FB1'}; width: 16px; border-radius: 4px 4px 0 0; transition: height 0.3s;"></div>
+                <span style="font-size: 10px; color: #8A7A78; font-weight: 600;">${etiquetas7Dias[idx]}</span>
+            `;
+            contenedorGrafico.appendChild(columnaWrapper);
+        });
+    }
+
+    // Mantener actualizado el carrito multidiseño
     if (typeof cargarSelectorProductosVenta === 'function') {
         await cargarSelectorProductosVenta();
     }
-
-    // Dibujar de forma segura los vectores Lucide cargados dinámicamente
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-    console.log("🌸 Métricas reales del Dashboard renderizadas con éxito.");
+    console.log("🌸 Gráfica semanal real y Dashboard sincronizados con éxito.");
 }
