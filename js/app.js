@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 250);
 });
 
-// Refresco masivo unificado de los catálogos y paneles en blanco
+// CORREGIDO: Nombres de variables unificados sin cortes
 async function cargarTodoElSistemaReal() {
     try {
         _todosLosInsumos = await obtenerTodosLosRegistros("insumos");
@@ -42,7 +42,7 @@ async function cargarTodoElSistemaReal() {
 // ====== MÓDULO 1: GESTIÓN DE INSUMOS REALES Y FILTRADO ACTIVADO ======
 // ============================================================================
 
-// 1. RENDERIZADO DE LA TABLA EXCEL DE INSUMOS (Foto 2 Izquierda)
+// 1. RENDERIZADO DE LA TABLA EXCEL DE INSUMOS REALES CORREGIDA
 async function renderizarInsumosReales(listaFiltrada = null) {
     const tbody = document.getElementById("tbody-insumos-reales");
     if (!tbody) return;
@@ -56,14 +56,13 @@ async function renderizarInsumosReales(listaFiltrada = null) {
     }
 
     datos.forEach(insumo => {
-        // Encontrar la distribuidora ideal (precio más bajo guardado en su lista)
         let detallesProveedor = "Sin proveedores";
-        let precioBaseDisplay = parseFloat(insumo.precioBase).toFixed(2);
+        let precioBaseDisplay = parseFloat(insumo.precioBase || 0).toFixed(2);
 
+        // Corrección del mapeo del array de sucursales de la balanza
         if (insumo.sucursales && insumo.sucursales.length > 0) {
-            // Ordenar por el precio de menor a mayor
             const sucursalesOrdenadas = [...insumo.sucursales].sort((a, b) => a.precio - b.precio);
-            const ideal = sucursalesOrdenadas[0];
+            const ideal = sucursalesOrdenadas[0]; // Tomar el precio más barato de la balanza
             
             if (insumo.sucursales.length > 1) {
                 const peor = sucursalesOrdenadas[sucursalesOrdenadas.length - 1];
@@ -72,30 +71,42 @@ async function renderizarInsumosReales(listaFiltrada = null) {
             } else {
                 detallesProveedor = `${ideal.nombre} ✨ (Ideal)`;
             }
-            precioBaseDisplay = parseFloat(ideal.precio).toFixed(2);
+            precioBaseDisplay = parseFloat(ideal.precio || 0).toFixed(2);
         } else {
-            detallesProveedor = `${insumo.sucursalInicial} ✨ (Ideal)`;
+            detallesProveedor = `${insumo.sucursalInicial || 'Principal'} ✨ (Ideal)`;
         }
-
         const fila = document.createElement("tr");
         fila.innerHTML = `
             <td style="font-weight: 700; color: #4A3E3D; padding: 14px 16px;">${insumo.nombre}</td>
             <td style="padding: 14px 16px;">$${precioBaseDisplay}</td>
             <td style="padding: 14px 16px;">${insumo.unidad === 'xM' ? 'Metro (xM)' : 'Unidad (xU)'}</td>
             <td style="color: #2E7D32; font-weight: 700; padding: 14px 16px;">${detallesProveedor}</td>
-            <td style="text-align: center; padding: 14px 16px;">
-                <button onclick="abrirBalanzaComparativa(${insumo.id})" class="row-btn" style="color:#1E88E5;" title="Comparar Sucursales"><i data-lucide="scale" style="width:16px; height:16px;"></i></button>
-                <button onclick="abrirModificarInsumo(${insumo.id})" class="row-btn" style="color:#4A3E3D;" title="Modificar"><i data-lucide="edit-3" style="width:16px; height:16px;"></i></button>
-                <button onclick="ejecutarEliminarInsumo(${insumo.id})" class="row-btn row-btn-delete" title="Eliminar"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button>
+            <td style="text-align: center; padding: 14px 16px; min-width: 140px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <button onclick="abrirBalanzaComparativa(${insumo.id})" class="row-btn" style="color: #1E88E5; background: transparent; border: none; cursor: pointer; padding: 4px;" title="Comparar Sucursales">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16V5a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2z"/><path d="M23 18H1"/><circle cx="7" cy="10" r="2"/></svg>
+                </button>
+                <button onclick="abrirModificarInsumo(${insumo.id})" class="row-btn" style="color: #4A3E3D; background: transparent; border: none; cursor: pointer; padding: 4px;" title="Modificar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
+                <button onclick="ejecutarEliminarInsumo(${insumo.id})" class="row-btn" style="color: #E53935; background: transparent; border: none; cursor: pointer; padding: 4px;" title="Eliminar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
             </td>
+
+
         `;
         tbody.appendChild(fila);
     });
 
-    lucide.createIcons();
+    // Forzar la creación de íconos en los botones recién inyectados
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
+
 // LÓGICA DE FILTRADO: Filtro por texto real conectado a la barra Excel
+// CORREGIDO: Uso de .filter nativo de JavaScript estándar
 function filtrarInsumosReales() {
     const buscar = document.getElementById("filtro-insumos-input").value.trim().toLowerCase();
     if (!buscar) {
@@ -105,6 +116,7 @@ function filtrarInsumosReales() {
         renderizarInsumosReales(filtrados);
     }
 }
+
 // 2. CONTROL DEL FORMULARIO DE ALTA Y GUARDADO EN MEMORIA INDEXEDDB
 function abrirModalNuevoInsumo() {
     document.getElementById("form-real-insumo").reset();
@@ -208,7 +220,10 @@ function renderizarTablaSucursalesBalanza() {
         `;
         tbody.appendChild(fila);
     });
+    if (typeof lucide !== 'undefined') {
     lucide.createIcons();
+}
+
 }
 
 async function agregarPrecioSucursalBalanza() {
@@ -279,15 +294,24 @@ async function renderizarProductosReales(listaFiltrada = null) {
             <td style="padding: 14px 16px; font-weight: 600; ${esStockCritico ? 'color:#E53935; font-weight:700;' : 'color:#555555;'}">
                 ${stockActual} / <span style="font-size:12px; color:#999999;">${stockMinimo}</span>
             </td>
-            <td style="text-align: center; padding: 14px 16px;">
-                <button onclick="abrirModificarProducto(${prod.id})" class="row-btn" style="color:#4A3E3D;" title="Modificar"><i data-lucide="edit-3" style="width:16px; height:16px;"></i></button>
-                <button onclick="ejecutarEliminarProducto(${prod.id})" class="row-btn row-btn-delete" title="Eliminar"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button>
-            </td>
+        <td style="text-align: center; padding: 14px 16px; min-width: 140px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button onclick="abrirModificarProducto(${prod.id})" class="row-btn" style="color: #4A3E3D; background: transparent; border: none; cursor: pointer; padding: 4px;" title="Modificar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </button>
+            <button onclick="ejecutarEliminarProducto(${prod.id})" class="row-btn" style="color: #E53935; background: transparent; border: none; cursor: pointer; padding: 4px;" title="Eliminar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+        </td>
+
+
         `;
         tbody.appendChild(fila);
     });
 
+    if (typeof lucide !== 'undefined') {
     lucide.createIcons();
+}
+
 }
 
 // LÓGICA DE FILTRADO: Buscador real conectado a la barra de herramientas del catálogo
@@ -395,7 +419,11 @@ function renderizarRecetaTemporalFormulario() {
         `;
         tbody.appendChild(fila);
     });
-    lucide.createIcons();
+        // Reemplazo en línea 408 para que no rompa la ejecución
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
 }
 
 function eliminarLineaRecetaTemporal(index) {
@@ -430,22 +458,46 @@ function calcularPrecioSugeridoReal() {
 }
 
 // 4. CONTROL DE APERTURA, MODIFICACIÓN Y PERSISTENCIA FINAL DE PRODUCTOS
+// MODIFICACIÓN QUIRÚRGICA: Corrección de caracteres de escape en el alta de productos
 function abrirModalNuevoProducto() {
-    document.getElementById("form-real-producto").reset();
-    document.getElementById("producto-real-id").value = "";
-    document.getElementById("titulo-modal-producto").innerText = "Nuevo Producto para Catálogo";
+    const form = document.getElementById("form-real-producto");
+    const modal = document.getElementById("modal-alta-producto");
     
+    if (form) form.reset();
+    
+    const inputId = document.getElementById("producto-real-id");
+    if (inputId) inputId.value = "";
+    
+    const titulo = document.getElementById("titulo-modal-producto");
+    if (titulo) titulo.innerText = "Nuevo Producto para Catálogo";
+    
+    // Vaciar de forma segura el array provisional de la receta de escandallo
     _recetaTemporalProducto = [];
-    renderizarRecetaTemporalFormulario();
+    if (typeof renderizarRecetaTemporalFormulario === 'function') {
+        renderizarRecetaTemporalFormulario();
+    }
     
-    document.getElementById("chk-info-adicional").checked = false;
-    document.getElementById("seccion-receta-adicional").classList.add("hidden");
+    // Resetear visualmente el checkbox de Información Adicional
+    const checkbox = document.getElementById("chk-info-adicional");
+    if (checkbox) checkbox.checked = false;
     
-    document.getElementById("calc-costo-total").innerText = "\$0.00 ARS";
-    document.getElementById("calc-precio-sugerido").innerText = "\$0.00 ARS";
+    const seccionReceta = document.getElementById("seccion-receta-adicional");
+    if (seccionReceta) seccionReceta.classList.add("hidden");
     
-    document.getElementById("modal-alta-producto").classList.remove("hidden");
+    // CORRECCIÓN CLAVE: Remoción de la barra invertida que rompía la ejecución
+    const labelCosto = document.getElementById("calc-costo-total");
+    if (labelCosto) labelCosto.innerText = "$0.00 ARS";
+    
+    const labelSugerido = document.getElementById("calc-precio-sugerido");
+    if (labelSugerido) labelSugerido.innerText = "$0.00 ARS";
+    
+    // Desplegar la ventana modal de forma fluida
+    if (modal) {
+        modal.classList.remove("hidden");
+    }
+    console.log("🌸 Formulario de alta de productos inicializado.");
 }
+
 
 function cerrarModalNuevoProducto() {
     document.getElementById("modal-alta-producto").classList.add("hidden");
@@ -605,7 +657,10 @@ function renderizarCarritoMostrador() {
     });
 
     labelTotal.innerText = `$ ${totalAcumulado.toFixed(2)} ARS`;
+    if (typeof lucide !== 'undefined') {
     lucide.createIcons();
+}
+
 }
 
 function eliminarLineaCarritoMostrador(index) {
@@ -751,8 +806,13 @@ async function renderizarCajaYHistorialReal() {
     labelCantCaja.innerText = ventasFiltradas.length;
     
     actualizarEstiloBotonesFiltroCaja();
-    lucide.createIcons();
+    
+    // CORREGIDO: Palabra unificada sin espacios ni cortes extraños
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
+
 
 function cambiarFiltroTiempoCaja(filtro) {
     _filtroCajaActual = filtro;
@@ -797,32 +857,34 @@ async function renderizarPestañaPrincipalResumen() {
     const panelAlertasInsumos = document.getElementById("lista-alertas-insumos");
     const alertasCountLabel = document.getElementById("dash-alertas-insumos-count");
 
-    if (!totalInsumosLabel || !totalProductosLabel || !panelAlertasInsumos) return;
+    // MODIFICACIÓN BLINDADA: Evita que si falta un elemento secundario se congele el Dashboard
+    if (totalInsumosLabel) totalInsumosLabel.innerText = _todosLosInsumos.length;
+    if (totalProductosLabel) totalProductosLabel.innerText = _todosLosProductos.length;
 
-    totalInsumosLabel.innerText = _todosLosInsumos.length;
-    totalProductosLabel.innerText = _todosLosProductos.length;
-
-    panelAlertasInsumos.innerHTML = "";
     let contadorAlertas = 0;
+    if (panelAlertasInsumos) {
+        panelAlertasInsumos.innerHTML = "";
 
-    _todosLosProductos.forEach(p => {
-        const stockAct = parseInt(p.stock) || 0;
-        const stockMin = parseInt(p.minimo) || 0;
-        
-        if (stockAct <= stockMin) {
-            contadorAlertas++;
-            const item = document.createElement("div");
-            item.className = "alert-item";
-            item.innerHTML = `
-                <span>${p.nombre} &middot; Stock: ${stockAct} u</span>
-                <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #E65100;"></i>
-            `;
-            panelAlertasInsumos.appendChild(item);
-        }
-    });
+        _todosLosProductos.forEach(p => {
+            const stockAct = parseInt(p.stock) || 0;
+            const stockMin = parseInt(p.minimo) || 0;
+            
+            // Si el stock actual es igual o menor al mínimo, salta la alerta roja real
+            if (stockAct <= stockMin) {
+                contadorAlertas++;
+                const item = document.createElement("div");
+                item.className = "alert-item";
+                item.innerHTML = `
+                    <span>${p.nombre} &middot; Stock: ${stockAct} u</span>
+                    <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #E65100;"></i>
+                `;
+                panelAlertasInsumos.appendChild(item);
+            }
+        });
+    }
 
-    alertasCountLabel.innerText = contadorAlertas;
-
+    if (alertasCountLabel) alertasCountLabel.innerText = contadorAlertas;
+    // Calcular las ventas reales del día en curso
     let ahoraStr = new Date().toDateString();
     let totalHoy = 0;
 
@@ -833,9 +895,25 @@ async function renderizarPestañaPrincipalResumen() {
         }
     });
 
-    ventasHoyLabel.innerText = `$${totalHoy.toFixed(2)} ARS`;
-    pedidosActivosLabel.innerText = _todosLosProductos.filter(p => (parseInt(p.stock)||0) <= (parseInt(p.minimo)||0)).length;
+    // Inyectar valores reales en pesos argentinos
+    if (ventasHoyLabel) {
+        ventasHoyLabel.innerText = `$${totalHoy.toFixed(2)} ARS`;
+    }
+    
+    if (pedidosActivosLabel) {
+        // Cuenta cuántos productos reales están por debajo de su stock mínimo de seguridad
+        const criticos = _todosLosProductos.filter(p => (parseInt(p.stock) || 0) <= (parseInt(p.minimo) || 0));
+        pedidosActivosLabel.innerText = criticos.length;
+    }
 
-    await cargarSelectorProductosVenta();
-    lucide.createIcons();
+    // Mantener sincronizado el selector del carrito multiproducto de mostrador
+    if (typeof cargarSelectorProductosVenta === 'function') {
+        await cargarSelectorProductosVenta();
+    }
+
+    // Dibujar de forma segura los vectores Lucide cargados dinámicamente
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    console.log("🌸 Métricas reales del Dashboard renderizadas con éxito.");
 }

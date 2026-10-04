@@ -7,37 +7,139 @@
     <link rel="manifest" href="manifest.json">
     <!-- Fuente Quicksand: Limpia y estética -->
     <link href="https://googleapis.com" rel="stylesheet">
-    <!-- Iconos Lucide -->
-    <script src="https://unpkg.com"></script>
+        <!-- ====== LIBRERÍA DE ICONOS LOCAL BLINDADA OFFLINE ====== -->
+    <script src="js/lucide.min.js"></script>
+
     
     <!-- ESTILOS INTERNOS BLINDADOS OFFLINE: Soluciona el error visual por completo -->
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Quicksand', sans-serif; background-color: #FFF5F7; color: #4A3E3D; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        body { 
+            font-family: 'Quicksand', sans-serif; 
+            background-color: #FFF5F7; 
+            color: #4A3E3D; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+            flex-direction: row; 
+        }
         
         /* Menú Lateral */
-        .sidebar { width: 260px; background-color: #FCE4EC; border-r: 1px solid #F48FB1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; shrink: 0; }
-        .logo-container { display: flex; flex-direction: column; items-center: center; text-align: center; margin-bottom: 24px; gap: 8px; }
-        .logo-circle { bg-color: white; background: white; padding: 10px; rounded-radius: 9999px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
-        
-        .nav-menu { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-        .nav-btn { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; background: transparent; color: #8A7A78; text-align: left; width: 100%; transition: all 0.2s; }
-        .nav-btn:hover { background-color: rgba(255,255,255,0.4); }
-        .nav-btn.active { background-color: white; color: #D81B60; border: 1px solid #F48FB1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        
-        /* Contenedor Principal */
-        main { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
-        .hidden { display: none !important; }
-        
-        /* Estilos en Móvil */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; padding: 10px; border-r: none; border-b: 1px solid #F48FB1; position: fixed; bottom: 0; left: 0; z-index: 50; }
-            .logo-container, .sidebar div:last-child { display: none; }
-            .nav-menu { flex-direction: row; justify-content: space-around; }
-            .nav-btn { flex-direction: column; align-items: center; gap: 4px; font-size: 11px; padding: 6px; text-align: center; }
-            main { padding: 16px; padding-bottom: 90px; }
+        .sidebar { 
+            width: 260px; 
+            background-color: #FCE4EC; 
+            border-right: 1px solid #F48FB1; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            flex-shrink: 0; 
         }
+        .logo-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center; 
+            margin-bottom: 24px; 
+            gap: 8px; 
+        }
+        .logo-circle { 
+            background-color: white; 
+            padding: 10px; 
+            border-radius: 50%; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            width: 44px; 
+            height: 44px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0 auto; 
+        }
+        
+        .nav-menu { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            width: 100%; 
+        }
+        .nav-btn { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px; 
+            border-radius: 12px; 
+            font-size: 14px; 
+            font-weight: 600; 
+            border: none; 
+            cursor: pointer; 
+            background: transparent; 
+            color: #8A7A78; 
+            text-align: left; 
+            width: 100%; 
+            transition: all 0.2s; 
+        }
+        .nav-btn:hover { 
+            background-color: rgba(255,255,255,0.4); 
+        }
+        .nav-btn.active { 
+            background-color: white; 
+            color: #D81B60; 
+            border: 1px solid #F48FB1; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+        }        /* Contenedor Principal */
+        main { 
+            flex: 1; 
+            padding: 30px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 24px; 
+        }
+        .hidden { 
+            display: none !important; 
+        }
+        
+        /* Estilos en Móvil Adaptativos */
+        @media (max-width: 768px) {
+            body { 
+                flex-direction: column; 
+            }
+            .sidebar { 
+                width: 100%; 
+                height: auto; 
+                padding: 10px; 
+                border-right: none; 
+                border-bottom: 1px solid #F48FB1; 
+                position: fixed; 
+                bottom: 0; 
+                left: 0; 
+                z-index: 50; 
+            }
+            .logo-container, .sidebar div:last-child { 
+                display: none; 
+            }
+            .nav-menu { 
+                flex-direction: row; 
+                justify-content: space-around; 
+            }
+            .nav-btn { 
+                flex-direction: column; 
+                align-items: center; 
+                gap: 4px; 
+                font-size: 11px; 
+                padding: 6px; 
+                text-align: center; 
+            }
+            main { 
+                padding: 16px; 
+                padding-bottom: 90px; 
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -50,30 +152,49 @@
             </div>
             <div>
                 <h1 style="font-size: 20px; font-weight: 700; color: #4A3E3D; line-height: 1.2;">Lety</h1>
-                <p style="font-size: 10px; font-weight: 700; color: #8A7A78; tracking-width: 2px; text-transform: uppercase;">Accesorios</p>
+                <p style="font-size: 10px; font-weight: 700; color: #8A7A78; letter-spacing: 1px; text-transform: uppercase;">Accesorios</p>
             </div>
         </div>
 
+        <!-- ====== MENÚ DE NAVEGACIÓN CON ÍCONOS BLINDADOS ====== -->
         <nav class="nav-menu">
             <button onclick="cambiarPestaña('resumen')" id="btn-resumen" class="nav-btn active">
-                <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 2px;">
+                    <rect width="7" height="9" x="3" y="3" rx="1"/>
+                    <rect width="7" height="5" x="14" y="3" rx="1"/>
+                    <rect width="7" height="9" x="14" y="10" rx="1"/>
+                    <rect width="7" height="5" x="3" y="14" rx="1"/>
+                </svg>
                 <span>Resumen</span>
             </button>
+            
             <button onclick="cambiarPestaña('insumos')" id="btn-insumos" class="nav-btn">
-                <i data-lucide="package" style="width: 18px; height: 18px;"></i>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 2px;">
+                    <path d="M16.5 9.4 7.55 4.24a1.79 1.79 0 0 0-1.8 0l-4.3 2.5a1.78 1.78 0 0 0 0 3.1l8.9 5.15a1.8 1.8 0 0 0 1.8 0l8.9-5.15a1.78 1.78 0 0 0 0-3.1Z"/>
+                    <path d="M3.23 10.15V19a2 2 0 0 0 1 1.73l6.5 3.75a2 2 0 0 0 2 0l6.5-3.75a2 2 0 0 0 1-1.73v-8.85"/>
+                </svg>
                 <span>Insumos</span>
             </button>
+            
             <button onclick="cambiarPestaña('productos')" id="btn-productos" class="nav-btn">
-                <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 2px;">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/>
+                </svg>
                 <span>Productos</span>
             </button>
+            
             <button onclick="cambiarPestaña('ventas')" id="btn-ventas" class="nav-btn">
-                <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 2px;">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
                 <span>Ventas</span>
             </button>
         </nav>
 
-        <div style="text-align: center; font-size: 10px; color: #8A7A78; font-weight: 500; border-top: 1px solid rgba(244,143,177,0.3); pt: 12px; padding-top: 10px;">
+
+        <div style="text-align: center; font-size: 10px; color: #8A7A78; font-weight: 500; border-top: 1px solid rgba(244,143,177,0.3); padding-top: 12px;; padding-top: 10px;">
             Almacenamiento Local
         </div>
     </div>
@@ -95,7 +216,7 @@
         .chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 180px; padding-top: 20px; position: relative; width: 100%; }
         .chart-line-bg { position: absolute; left: 0; right: 0; bottom: 0; top: 20px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; opacity: 0.1; }
         .chart-line-bg div { border-bottom: 1px solid #4A3E3D; width: 100%; }
-        .chart-bar-wrapper { display: flex; flex-direction: column; items-center: center; align-items: center; gap: 6px; z-index: 10; width: 100%; }
+        .chart-bar-wrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 10; width: 100%; }
         .chart-bar { width: 14px; background-color: #F48FB1; border-radius: 4px 4px 0 0; transition: height 0.3s; }
         .chart-bar.highlight { background-color: #D81B60; }
         
@@ -117,7 +238,7 @@
             <!-- Tarjeta Insumos -->
             <div class="card card-blue">
                 <div>
-                    <p style="font-size: 11px; font-weight: 700; color: #1E88E5; text-transform: uppercase; tracking-width: 1px;">Items en Stock (insumos)</p>
+                    <p style="font-size: 11px; font-weight: 700; color: #1E88E5; text-transform: uppercase; letter-spacing: 1px;">Items en Stock (insumos)</p>
                     <h3 id="dash-total-insumos" style="font-size: 32px; font-weight: 700; color: #1565C0; margin-top: 4px;">235</h3>
                     <p style="font-size: 11px; color: #777777; margin-top: 2px;">items total</p>
                 </div>
@@ -299,7 +420,7 @@
 
     <!-- ====== MODAL: COMPARADOR BALANZA ⚖️ (AÑADIR SUCURSALES) ====== -->
     <div id="modal-balanza-sucursales" class="modal-overlay hidden">
-        <div class="modal-card" style="max-w: 500px;">
+        <div class="modal-card" style="max-width: 500px;">
             <div style="background-color: #E3F2FD; padding: 16px; border-bottom: 1px solid #BBDEFB; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="scale" style="color: #1E88E5; width: 18px; height: 18px;"></i>
@@ -412,7 +533,7 @@
     </style>
     <!-- ====== MODAL: CREAR / MODIFICAR PRODUCTO REAL CON ESCANDALLO ====== -->
     <div id="modal-alta-producto" class="modal-overlay hidden">
-        <div class="modal-card" style="max-w: 550px; width: 95%;">
+        <div class="modal-card" style="max-width: 550px;; width: 95%;">
             <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="sparkles" style="color: #D81B60; width: 18px; height: 18px;"></i>
@@ -456,7 +577,7 @@
                 </div>
 
                 <!-- Contenedor Desplegable de la Receta -->
-                <div id="seccion-receta-adicional" class="hidden" style="display: flex; flex-direction: column; gap: 12px; border-top: 1px dashed #E2E8F0; pt: 12px; padding-top: 10px;">
+                <div id="seccion-receta-adicional" class="hidden" style="display: flex; flex-direction: column; gap: 12px; border-top: 1px dashed #E2E8F0;  padding-top: 12px;; padding-top: 10px;">
                     
                     <!-- Sub-formulario para ir añadiendo insumos uno por uno -->
                     <div style="background-color: #FAFAFA; border: 1px solid #E2E8F0; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
@@ -510,7 +631,7 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; font-weight: 700; color: #2E7D32; border-top: 1px dashed #FFE0B2; pt: 8px; padding-top: 6px; font-size: 14px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: 700; color: #2E7D32; border-top: 1px dashed #FFE0B2; padding-top: 8px;; padding-top: 6px; font-size: 14px;">
                             <span>Precio Sugerido Final:</span>
                             <span id="calc-precio-sugerido">$0.00</span>
                         </div>
@@ -722,13 +843,9 @@
     </div>
     </main>
 
-    <!-- ====== LÓGICA INTEGRADA DE CONTROL DE PESTAÑAS ====== -->
+       <!-- ====== LÓGICA INTEGRADA DE CONTROL DE PESTAÑAS ====== -->
     <script>
-        // Dibujar los iconos vectoriales de Lucide al iniciar la app
-        lucide.createIcons();
-
         function cambiarPestaña(pestañaId) {
-            // Lista de identificadores de cada contenedor de pantalla
             const pestañas = ['resumen', 'insumos', 'productos', 'ventas'];
             
             pestañas.forEach(p => {
@@ -737,21 +854,49 @@
                 
                 if (elemento && boton) {
                     if (p === pestañaId) {
-                        // Quitar la clase que oculta el bloque y activar el botón
                         elemento.classList.remove('hidden');
                         boton.classList.add('active');
                     } else {
-                        // Ocultar el bloque de la pantalla inactiva
                         elemento.classList.add('hidden');
                         boton.classList.remove('active');
                     }
                 }
             });
+
+            // Forzar recarga de selectores y tablas según la pestaña activa
+            if (pestañaId === 'ventas' && typeof cargarSelectorProductosVenta === 'function') {
+                cargarSelectorProductosVenta();
+            }
         }
     </script>
 
-    <!-- ====== CONEXIÓN CON LOS SCRIPT OPERATIVOS DE TU CARPETA JS ====== -->
+    <!-- ====== CONEXIÓN CON LOS SCRIPTS OPERATIVOS (Orden de Carga Optimizado) ====== -->
     <script src="js/db.js"></script>
     <script src="js/app.js"></script>
+    
+    <script>
+        // Registrar eventos de apertura nativos para los botones una vez cargada la interfaz
+        document.addEventListener("DOMContentLoaded", () => {
+            // Inicializar iconos globales de la plantilla estática
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Enlazar de forma segura los botones de alta hacia las funciones de app.js
+            setTimeout(() => {
+                const botones = document.querySelectorAll("button");
+                botones.forEach(btn => {
+                    const texto = btn.innerText.toLowerCase();
+                    if (texto.includes("nuevo producto") || texto.includes("agregar nuevo producto")) {
+                        btn.setAttribute("onclick", "abrirModalNuevoProducto()");
+                    }
+                    if (texto.includes("nuevo insumo") || texto.includes("agregar insumo")) {
+                        btn.setAttribute("onclick", "abrirModalNuevoInsumo()");
+                    }
+                });
+            }, 600);
+        });
+    </script>
 </body>
 </html>
+
