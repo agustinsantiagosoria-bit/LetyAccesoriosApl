@@ -4,523 +4,753 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lety Accesorios - Gestión de Stock</title>
-    <!-- Tailwind CSS para el diseño fluido y pastel -->
-    <script src="https://tailwindcss.com"></script>
-    <!-- Fuente Quicksand: Estética, limpia y amigable para el negocio -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Fuente Quicksand: Limpia y estética -->
     <link href="https://googleapis.com" rel="stylesheet">
     <!-- Iconos Lucide -->
     <script src="https://unpkg.com"></script>
     
+    <!-- ESTILOS INTERNOS BLINDADOS OFFLINE: Soluciona el error visual por completo -->
     <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background-color: #FFF5F7; /* Fondo pastel general */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Quicksand', sans-serif; background-color: #FFF5F7; color: #4A3E3D; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        
+        /* Menú Lateral */
+        .sidebar { width: 260px; background-color: #FCE4EC; border-r: 1px solid #F48FB1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; shrink: 0; }
+        .logo-container { display: flex; flex-direction: column; items-center: center; text-align: center; margin-bottom: 24px; gap: 8px; }
+        .logo-circle { bg-color: white; background: white; padding: 10px; rounded-radius: 9999px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .nav-btn { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; background: transparent; color: #8A7A78; text-align: left; width: 100%; transition: all 0.2s; }
+        .nav-btn:hover { background-color: rgba(255,255,255,0.4); }
+        .nav-btn.active { background-color: white; color: #D81B60; border: 1px solid #F48FB1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        
+        /* Contenedor Principal */
+        main { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+        .hidden { display: none !important; }
+        
+        /* Estilos en Móvil */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; padding: 10px; border-r: none; border-b: 1px solid #F48FB1; position: fixed; bottom: 0; left: 0; z-index: 50; }
+            .logo-container, .sidebar div:last-child { display: none; }
+            .nav-menu { flex-direction: row; justify-content: space-around; }
+            .nav-btn { flex-direction: column; align-items: center; gap: 4px; font-size: 11px; padding: 6px; text-align: center; }
+            main { padding: 16px; padding-bottom: 90px; }
         }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+<body>
 
-    <!-- ====== MENÚ LATERAL (Escritorio) / BARRA INFERIOR (Móvil) ====== -->
-    <div class="bg-[#FCE4EC] md:w-64 w-full flex md:flex-col flex-row justify-between p-3 md:p-4 border-b md:border-b-0 md:border-r border-[#F48FB1] shrink-0 z-50">
-        
-        <!-- Logo y Nombre de Marca (Se oculta en barra inferior móvil para dar espacio) -->
-        <div class="hidden md:flex items-center space-y-2 flex-col mb-6 w-full">
-            <div class="bg-white p-2.5 rounded-full shadow-sm flex items-center justify-center">
-                <i data-lucide="heart" class="text-[#D81B60] fill-[#F48FB1] w-6 h-6"></i>
+    <!-- ====== MENÚ DE NAVEGACIÓN ====== -->
+    <div class="sidebar">
+        <div class="logo-container">
+            <div class="logo-circle">
+                <i data-lucide="heart" style="color: #D81B60; fill: #F48FB1; width: 22px; height: 22px;"></i>
             </div>
-            <div class="text-center">
-                <h1 class="text-xl font-bold text-[#4A3E3D]">Lety</h1>
-                <p class="text-[10px] font-bold text-[#8A7A78] tracking-widest uppercase">Accesorios</p>
+            <div>
+                <h1 style="font-size: 20px; font-weight: 700; color: #4A3E3D; line-height: 1.2;">Lety</h1>
+                <p style="font-size: 10px; font-weight: 700; color: #8A7A78; tracking-width: 2px; text-transform: uppercase;">Accesorios</p>
             </div>
         </div>
 
-        <!-- Botones de Navegación del Sistema -->
-        <nav class="flex md:flex-col flex-row justify-around md:justify-start md:space-y-2 w-full">
-            <button onclick="cambiarPestaña('resumen')" id="btn-resumen" class="flex flex-col md:flex-row items-center md:space-x-3 p-2 md:p-3 rounded-xl w-full text-sm font-semibold transition bg-white text-[#D81B60] shadow-sm border border-[#F48FB1]">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="text-[11px] md:text-sm mt-1 md:mt-0">Resumen</span>
+        <nav class="nav-menu">
+            <button onclick="cambiarPestaña('resumen')" id="btn-resumen" class="nav-btn active">
+                <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+                <span>Resumen</span>
             </button>
-            <button onclick="cambiarPestaña('insumos')" id="btn-insumos" class="flex flex-col md:flex-row items-center md:space-x-3 p-2 md:p-3 rounded-xl w-full text-sm font-semibold transition text-[#8A7A78] hover:bg-white/40">
-                <i data-lucide="package" class="w-5 h-5"></i>
-                <span class="text-[11px] md:text-sm mt-1 md:mt-0">Insumos</span>
+            <button onclick="cambiarPestaña('insumos')" id="btn-insumos" class="nav-btn">
+                <i data-lucide="package" style="width: 18px; height: 18px;"></i>
+                <span>Insumos</span>
             </button>
-            <button onclick="cambiarPestaña('productos')" id="btn-productos" class="flex flex-col md:flex-row items-center md:space-x-3 p-2 md:p-3 rounded-xl w-full text-sm font-semibold transition text-[#8A7A78] hover:bg-white/40">
-                <i data-lucide="sparkles" class="w-5 h-5"></i>
-                <span class="text-[11px] md:text-sm mt-1 md:mt-0">Productos</span>
+            <button onclick="cambiarPestaña('productos')" id="btn-productos" class="nav-btn">
+                <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                <span>Productos</span>
             </button>
-            <button onclick="cambiarPestaña('ventas')" id="btn-ventas" class="flex flex-col md:flex-row items-center md:space-x-3 p-2 md:p-3 rounded-xl w-full text-sm font-semibold transition text-[#8A7A78] hover:bg-white/40">
-                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-                <span class="text-[11px] md:text-sm mt-1 md:mt-0">Ventas</span>
+            <button onclick="cambiarPestaña('ventas')" id="btn-ventas" class="nav-btn">
+                <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i>
+                <span>Ventas</span>
             </button>
         </nav>
 
-        <div class="hidden md:block text-center text-[10px] text-[#8A7A78] font-medium border-t border-[#F48FB1]/30 pt-3">
-            Local Storage Activo
+        <div style="text-align: center; font-size: 10px; color: #8A7A78; font-weight: 500; border-top: 1px solid rgba(244,143,177,0.3); pt: 12px; padding-top: 10px;">
+            Almacenamiento Local
         </div>
     </div>
 
-    <!-- ====== CONTENEDOR PRINCIPAL ====== -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 pb-24 md:pb-8">
-        <!-- ============================================================ -->
-        <!-- PESTAÑA 1: RESUMEN GENERAL (DASHBOARD)                       -->
-        <!-- ============================================================ -->
-        <div id="pestaña-resumen" class="space-y-6">
-            
-            <!-- Tarjetas de Indicadores Superiores (Foto 3) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                
-                <!-- Indicador 1: Insumos y Alertas -->
-                <div class="bg-[#E3F2FD] p-5 rounded-2xl border border-[#BBDEFB] shadow-sm flex justify-between items-center">
-                    <div>
-                        <p class="text-xs font-bold text-[#1E88E5] tracking-wider uppercase">Items en Stock (insumos)</p>
-                        <h3 id="dash-total-insumos" class="text-3xl font-bold text-[#1565C0] mt-1">235</h3>
-                        <p class="text-[11px] font-medium text-gray-500 mt-0.5">items total</p>
-                    </div>
-                    <div class="bg-[#FFEBEE] px-3 py-1.5 rounded-xl border border-[#FFCDD2] text-center">
-                        <span id="dash-alertas-insumos-count" class="text-lg font-bold text-[#C62828] block leading-none">5</span>
-                        <span class="text-[9px] font-bold text-[#C62828] uppercase tracking-tight">Alertas</span>
-                    </div>
-                </div>
+    <!-- ====== CONTENEDOR CENTRAL ====== -->
+    <main>
+    <!-- ====== ESTILOS COMPLEMENTARIOS PARA COMPONENTES PASTEL ====== -->
+    <style>
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; width: 100%; }
+        .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; width: 100%; }
+        
+        .card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #EBEBEB; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px; }
+        .card-blue { background-color: #E3F2FD; border: 1px solid #BBDEFB; justify-content: space-between; flex-direction: row; align-items: center; }
+        .card-orange { background-color: #FFF3E0; border: 1px solid #FFE0B2; }
+        
+        .alert-pill { background-color: #FFEBEE; border: 1px solid #FFCDD2; padding: 6px 12px; border-radius: 12px; text-align: center; }
+        
+        /* Gráfico Semanal */
+        .chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 180px; padding-top: 20px; position: relative; width: 100%; }
+        .chart-line-bg { position: absolute; left: 0; right: 0; bottom: 0; top: 20px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; opacity: 0.1; }
+        .chart-line-bg div { border-bottom: 1px solid #4A3E3D; width: 100%; }
+        .chart-bar-wrapper { display: flex; flex-direction: column; items-center: center; align-items: center; gap: 6px; z-index: 10; width: 100%; }
+        .chart-bar { width: 14px; background-color: #F48FB1; border-radius: 4px 4px 0 0; transition: height 0.3s; }
+        .chart-bar.highlight { background-color: #D81B60; }
+        
+        /* Alertas de Insumos */
+        .alert-item { background-color: #FFF3E0; border: 1px solid #FFE0B2; padding: 10px 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #A04000; }
+        
+        @media (max-width: 1024px) {
+            .grid-2-1 { grid-template-columns: 1fr; }
+        }
+    </style>
 
-                <!-- Indicador 2: Productos y Pedidos -->
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-2 gap-2 divide-x divide-gray-100">
-                    <div class="pr-2">
-                        <p class="text-[10px] font-bold text-[#8A7A78] tracking-wider uppercase">Productos para Venta</p>
-                        <h3 id="dash-total-productos" class="text-2xl font-bold text-[#4A3E3D] mt-1">78</h3>
-                        <p class="text-[10px] text-gray-400 font-medium">creados</p>
-                    </div>
-                    <div class="pl-4">
-                        <p class="text-[10px] font-bold text-[#8A7A78] tracking-wider uppercase">Pedidos en Proceso</p>
-                        <h3 id="dash-pedidos-activos" class="text-2xl font-bold text-[#4A3E3D] mt-1">12</h3>
-                        <p class="text-[10px] text-[#A04000] font-semibold">activos</p>
-                    </div>
+    <!-- ============================================================ -->
+    <!-- PESTAÑA 1: RESUMEN GENERAL (DASHBOARD)                       -->
+    <!-- ============================================================ -->
+    <div id="pestaña-resumen" style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+        
+        <!-- Fila de Indicadores Superiores -->
+        <div class="grid-3">
+            <!-- Tarjeta Insumos -->
+            <div class="card card-blue">
+                <div>
+                    <p style="font-size: 11px; font-weight: 700; color: #1E88E5; text-transform: uppercase; tracking-width: 1px;">Items en Stock (insumos)</p>
+                    <h3 id="dash-total-insumos" style="font-size: 32px; font-weight: 700; color: #1565C0; margin-top: 4px;">235</h3>
+                    <p style="font-size: 11px; color: #777777; margin-top: 2px;">items total</p>
                 </div>
-
-                <!-- Indicador 3: Ventas del Día -->
-                <div class="bg-[#FFF3E0] p-5 rounded-2xl border border-[#FFE0B2] shadow-sm flex justify-between items-center">
-                    <div>
-                        <p class="text-xs font-bold text-[#E65100] tracking-wider uppercase">Ventas de Hoy</p>
-                        <h3 id="dash-ventas-hoy" class="text-3xl font-bold text-[#EF6C00] mt-1">$450 MXN</h3>
-                    </div>
-                    <div class="bg-[#FCE4C8] p-2 rounded-full text-[#E65100]">
-                        <i data-lucide="coins" class="w-6 h-6"></i>
-                    </div>
+                <div class="alert-pill">
+                    <span id="dash-alertas-insumos-count" style="font-size: 18px; font-weight: 700; color: #C62828; display: block; line-height: 1;">5</span>
+                    <span style="font-size: 9px; font-weight: 700; color: #C62828; text-transform: uppercase;">Alertas</span>
                 </div>
             </div>
 
-            <!-- Gráfico Semanal y Alertas Críticas (Foto 3) -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- Tarjeta del Gráfico Estadístico de Barras -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2">
-                    <h4 class="text-sm font-bold text-[#4A3E3D] mb-4">Mi Semana en Ventas</h4>
-                    <div class="h-44 flex items-end justify-between px-2 pt-4 relative">
-                        <!-- Líneas horizontales de fondo -->
-                        <div class="absolute inset-x-0 bottom-0 top-4 flex flex-col justify-between pointer-events-none opacity-40">
-                            <div class="border-b border-gray-100 w-full"></div>
-                            <div class="border-b border-gray-100 w-full"></div>
-                            <div class="border-b border-gray-100 w-full"></div>
-                            <div class="border-b border-gray-100 w-full"></div>
-                        </div>
-                        <!-- Renglones de barras simulados -->
-                        <div class="flex flex-col items-center space-y-1.5 z-10 w-full"><span class="text-[10px] font-bold text-gray-500">25</span><div class="bg-[#F48FB1] w-3 rounded-t-md" style="height: 45px;"></div><span class="text-[10px] font-semibold text-gray-400">Lu 25</span></div>
-                        <div class="flex flex-col items-center space-y-1.5 z-10 w-full"><span class="text-[10px] font-bold text-gray-500">32</span><div class="bg-[#F48FB1] w-3 rounded-t-md" style="height: 58px;"></div><span class="text-[10px] font-semibold text-gray-400">Se 32</span></div>
-                        <div class="flex flex-col items-center space-y-1.5 z-10 w-full"><span class="text-[10px] font-bold text-gray-500">41</span><div class="bg-[#D81B60] w-3 rounded-t-md" style="height: 74px;"></div><span class="text-[10px] font-semibold text-gray-400">Me 41</span></div>
-                        <div class="flex flex-col items-center space-y-1.5 z-10 w-full"><span class="text-[10px] font-bold text-gray-500">28</span><div class="bg-[#F48FB1] w-3 rounded-t-md" style="height: 50px;"></div><span class="text-[10px] font-semibold text-gray-400">Ju 28</span></div>
-                        <div class="flex flex-col items-center space-y-1.5 z-10 w-full"><span class="text-[10px] font-bold text-gray-500">45</span><div class="bg-[#D81B60] w-3 rounded-t-md" style="height: 82px;"></div><span class="text-[10px] font-semibold text-gray-400">V 45</span></div>
-                        <div class="flex flex-col items-center space-y-1.5 z-10 w-full"><span class="text-[10px] font-bold text-gray-500">35</span><div class="bg-[#F48FB1] w-3 rounded-t-md" style="height: 64px;"></div><span class="text-[10px] font-semibold text-gray-400">Sa 35</span></div>
-                        <div class="flex flex-col items-center space-y-1.5 z-10 w-full"><span class="text-[10px] font-bold text-gray-500">30</span><div class="bg-[#F48FB1] w-3 rounded-t-md" style="height: 54px;"></div><span class="text-[10px] font-semibold text-gray-400">Su 30</span></div>
-                    </div>
+            <!-- Tarjeta Productos y Pedidos -->
+            <div class="card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px;">
+                <div style="border-right: 1px solid #EBEBEB; padding-right: 10px;">
+                    <p style="font-size: 10px; font-weight: 700; color: #8A7A78; text-transform: uppercase;">Productos</p>
+                    <h3 id="dash-total-productos" style="font-size: 24px; font-weight: 700; color: #4A3E3D; margin-top: 4px;">78</h3>
+                    <p style="font-size: 10px; color: #999999;">creados</p>
                 </div>
+                <div style="padding-left: 10px;">
+                    <p style="font-size: 10px; font-weight: 700; color: #8A7A78; text-transform: uppercase;">Pedidos Activos</p>
+                    <h3 id="dash-pedidos-activos" style="font-size: 24px; font-weight: 700; color: #4A3E3D; margin-top: 4px;">12</h3>
+                    <p style="font-size: 10px; color: #A04000; font-weight: 600;">en proceso</p>
+                </div>
+            </div>
 
-                <!-- Panel de Alertas Críticas Lateral -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-                    <h4 class="text-sm font-bold text-[#C62828]">Alertas de Insumos</h4>
-                    <div id="lista-alertas-insumos" class="space-y-2 overflow-y-auto max-h-40">
-                        <div class="bg-[#FFF3E0] px-3 py-2 rounded-xl flex justify-between items-center border border-[#FFE0B2]">
-                            <span class="text-xs font-semibold text-[#A04000]">Cordón Elástico Rosa &middot; 2m</span>
-                            <i data-lucide="alert-circle" class="w-4 h-4 text-[#E65100]"></i>
-                        </div>
-                        <div class="bg-[#FFF3E0] px-3 py-2 rounded-xl flex justify-between items-center border border-[#FFE0B2]">
-                            <span class="text-xs font-semibold text-[#A04000]">Arguilas Oro &middot; 10u</span>
-                            <i data-lucide="alert-circle" class="w-4 h-4 text-[#E65100]"></i>
-                        </div>
-                        <div class="bg-[#FFF3E0] px-3 py-2 rounded-xl flex justify-between items-center border border-[#FFE0B2]">
-                            <span class="text-xs font-semibold text-[#A04000]">Argollas Oro &middot; 10u</span>
-                            <i data-lucide="alert-circle" class="w-4 h-4 text-[#E65100]"></i>
-                        </div>
+            <!-- Tarjeta Caja Hoy -->
+            <div class="card card-orange">
+                <p style="font-size: 11px; font-weight: 700; color: #E65100; text-transform: uppercase;">Ventas de Hoy</p>
+                <h3 id="dash-ventas-hoy" style="font-size: 32px; font-weight: 700; color: #EF6C00; margin-top: 4px;">$450</h3>
+                <p style="font-size: 11px; color: #8A7A78; margin-top: 2px;">caja diaria activa</p>
+            </div>
+        </div>
+
+        <!-- Fila de Gráfico y Alertas Críticas -->
+        <div class="grid-2-1">
+            <!-- Gráfico Semanal -->
+            <div class="card">
+                <h4 style="font-size: 14px; font-weight: 700; color: #4A3E3D;">Mi Semana en Ventas</h4>
+                <div class="chart-container">
+                    <div class="chart-line-bg">
+                        <div></div><div></div><div></div><div></div>
+                    </div>
+                    <div class="chart-bar-wrapper"><span style="font-size: 10px; font-weight: 700; color: #777777;">25</span><div class="chart-bar" style="height: 50px;"></div><span style="font-size: 10px; color: #999999;">Lu 25</span></div>
+                    <div class="chart-bar-wrapper"><span style="font-size: 10px; font-weight: 700; color: #777777;">32</span><div class="chart-bar" style="height: 64px;"></div><span style="font-size: 10px; color: #999999;">Se 32</span></div>
+                    <div class="chart-bar-wrapper"><span style="font-size: 10px; font-weight: 700; color: #777777;">41</span><div class="chart-bar highlight" style="height: 82px;"></div><span style="font-size: 10px; color: #999999;">Me 41</span></div>
+                    <div class="chart-bar-wrapper"><span style="font-size: 10px; font-weight: 700; color: #777777;">28</span><div class="chart-bar" style="height: 56px;"></div><span style="font-size: 10px; color: #999999;">Ju 28</span></div>
+                    <div class="chart-bar-wrapper"><span style="font-size: 10px; font-weight: 700; color: #777777;">45</span><div class="chart-bar highlight" style="height: 90px;"></div><span style="font-size: 10px; color: #999999;">V 45</span></div>
+                    <div class="chart-bar-wrapper"><span style="font-size: 10px; font-weight: 700; color: #777777;">35</span><div class="chart-bar" style="height: 70px;"></div><span style="font-size: 10px; color: #999999;">Sa 35</span></div>
+                    <div class="chart-bar-wrapper"><span style="font-size: 10px; font-weight: 700; color: #777777;">30</span><div class="chart-bar" style="height: 60px;"></div><span style="font-size: 10px; color: #999999;">Su 30</span></div>
+                </div>
+            </div>
+
+            <!-- Panel de Alertas Lateral -->
+            <div class="card" style="gap: 12px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #C62828;">Alertas de Insumos</h4>
+                <div id="lista-alertas-insumos" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 160px;">
+                    <div class="alert-item">
+                        <span>Cordón Elástico Rosa &middot; 2m</span>
+                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #E65100;"></i>
+                    </div>
+                    <div class="alert-item">
+                        <span>Arguilas Oro &middot; 10u</span>
+                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #E65100;"></i>
+                    </div>
+                    <div class="alert-item">
+                        <span>Argollas Oro &middot; 10u</span>
+                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #E65100;"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- ============================================================ -->
-        <!-- PESTAÑA 2: GESTIÓN DE INSUMOS (TABLA EXCEL REFINADA)          -->
-        <!-- ============================================================ -->
-        <div id="pestaña-insumos" class="space-y-4 hidden">
-            <!-- Barra superior con Buscador y Categorías (Foto 2) -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/60 p-3 rounded-xl border border-gray-100">
-                <h2 class="text-lg font-bold text-[#4A3E3D]">Insumos / Inventario - Gestión 🧵</h2>
-                <div class="flex items-center space-x-2 w-full sm:w-auto">
-                    <input type="text" placeholder="Filtrar Insumos..." class="bg-white px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none w-full sm:w-60 focus:border-[#F48FB1]" />
-                    <button class="bg-white px-3 py-2 text-sm font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center space-x-1 shrink-0 text-[#8A7A78]">
-                        <span>Categoría</span> <i data-lucide="chevron-down" class="w-4 h-4"></i>
+    </div>
+    <!-- ====== ESTILOS COMPLEMENTARIOS PARA TABLAS ESTILO EXCEL ====== -->
+    <style>
+        .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; background-color: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid #EBEBEB; width: 100%; }
+        .search-box { background: white; padding: 10px 16px; font-size: 14px; font-weight: 500; border-radius: 10px; border: 1px solid #E2E8F0; outline: none; width: 100%; max-width: 240px; font-family: 'Quicksand', sans-serif; transition: border-color 0.2s; }
+        .search-box:focus { border-color: #F48FB1; }
+        
+        .btn-action-pastel { background-color: #FCE4C8; border: none; padding: 10px 16px; font-size: 13px; font-weight: 700; color: #000000; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: background-color 0.2s; font-family: 'Quicksand', sans-serif; }
+        .btn-action-pastel:hover { background-color: #FADBB6; }
+        
+        .table-container { background: white; border-radius: 16px; border: 1px solid #EBEBEB; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; width: 100%; }
+        .responsive-table-wrapper { width: 100%; overflow-x: auto; }
+        .excel-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        .excel-table th { background-color: #FCECE3; color: #4A3E3D; font-weight: 700; padding: 12px 16px; border-bottom: 1px solid #EBEBEB; white-space: nowrap; }
+        .excel-table td { padding: 14px 16px; border-bottom: 1px solid #FAFAFA; color: #555555; font-weight: 500; }
+        .excel-table tr:hover td { background-color: #FFF5F7; }
+        
+        .row-btn { border: none; cursor: pointer; padding: 6px; border-radius: 8px; background: transparent; transition: background-color 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .row-btn-edit { color: #1E88E5; }
+        .row-btn-edit:hover { background-color: #E3F2FD; }
+        .row-btn-delete { color: #E53935; }
+        .row-btn-delete:hover { background-color: #FFEBEE; }
+    </style>
+
+       <!-- ============================================================ -->
+    <!-- PESTAÑA 2: GESTIÓN DE INSUMOS REALES CON COMPARADOR ⚖️         -->
+    <!-- ============================================================ -->
+    <div id="pestaña-insumos" style="display: flex; flex-direction: column; gap: 16px; width: 100%;" class="hidden">
+        
+        <!-- Barra de Herramientas con Filtro y Alta de Insumos -->
+        <div class="table-toolbar">
+            <h2 style="font-size: 16px; font-weight: 700; color: #4A3E3D;">Insumos / Inventario - Real 🧵</h2>
+            <div style="display: flex; align-items: center; gap: 12px; justify-content: flex-end; width: 100%;">
+                <!-- El input ahora tiene un ID único para la lógica del filtro en app.js -->
+                <input type="text" id="filtro-insumos-input" oninput="filtrarInsumosReales()" placeholder="🔍 Buscar insumo en tiempo real..." class="search-box" style="max-width: 280px;" />
+                <button onclick="abrirModalNuevoInsumo()" class="btn-action-pastel">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    <span>Nuevo Insumo</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla Excel de Datos Líquidos Reales -->
+        <div class="table-container">
+            <div class="responsive-table-wrapper">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th style="padding: 12px 16px;">Insumo Name</th>
+                            <th style="padding: 12px 16px;">Precio Costo</th>
+                            <th style="padding: 12px 16px;">Unidad</th>
+                            <th style="padding: 12px 16px;">Mejor Distribuidora + Diff</th>
+                            <th style="text-align: center; width: 140px; padding: 12px 16px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <!-- El tbody tiene un ID único y arrancará vacío esperando datos reales -->
+                    <tbody id="tbody-insumos-reales" class="divide-y">
+                        <!-- Las filas se inyectarán dinámicamente desde el archivo app.js -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- ====== MODAL: CREAR / MODIFICAR INSUMO REAL ====== -->
+    <div id="modal-alta-insumo" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="package" style="color: #D81B60; width: 18px; height: 18px;"></i>
+                    <h3 id="titulo-modal-insumo" style="font-size: 15px; font-weight: 700; color: #4A3E3D;">Nuevo Insumo Base</h3>
+                </div>
+                <button type="button" onclick="cerrarModalNuevoInsumo()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <form id="form-real-insumo" onsubmit="guardarInsumoReal(event)" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="insumo-real-id" />
+                
+                <div>
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Nombre del Insumo</label>
+                    <input type="text" id="insumo-real-nombre" required placeholder="Ej. Hilo Nylon 0.5mm" class="form-input" />
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio Inicial ($)</label>
+                        <input type="number" id="insumo-real-precio" required step="0.01" placeholder="Ej. 8.00" class="form-input" />
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Unidad de Medida</label>
+                        <select id="insumo-real-unidad" class="form-select">
+                            <option value="xU">Por Unidad (xU)</option>
+                            <option value="xM">Por Metro (xM)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Distribuidora / Comercio Inicial</label>
+                    <input type="text" id="insumo-real-sucursal" required placeholder="Ej. Mercería Lety, Once, Centro" class="form-input" />
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                    <button type="button" onclick="cerrarModalNuevoInsumo()" style="width: 35%; background-color: #F5F5F5; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Cancelar</button>
+                    <button type="submit" style="width: 65%; background-color: #FCE4C8; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Guardar Material</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== MODAL: COMPARADOR BALANZA ⚖️ (AÑADIR SUCURSALES) ====== -->
+    <div id="modal-balanza-sucursales" class="modal-overlay hidden">
+        <div class="modal-card" style="max-w: 500px;">
+            <div style="background-color: #E3F2FD; padding: 16px; border-bottom: 1px solid #BBDEFB; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="scale" style="color: #1E88E5; width: 18px; height: 18px;"></i>
+                    <h3 id="balanza-insumo-titulo" style="font-size: 15px; font-weight: 700; color: #1565C0;">Comparador de Sucursales</h3>
+                </div>
+                <button type="button" onclick="cerrarModalBalanza()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            
+            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="balanza-insumo-id" />
+                
+                <!-- Formulario interno para agregar cotización competitiva -->
+                <div style="background-color: #FFF5F7; border: 1px solid #F48FB1; padding: 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 10px;">
+                    <h4 style="font-size: 12px; font-weight: 700; color: #D81B60; text-transform: uppercase;">Agregar otra Sucursal para Cotizar</h4>
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
+                        <input type="text" id="balanza-nueva-sucursal" placeholder="Nombre de la Tienda (Ej. PCP)" class="form-input" style="background: white;" />
+                        <input type="number" id="balanza-nuevo-precio" step="0.01" placeholder="Precio ($)" class="form-input" style="background: white;" />
+                    </div>
+                    <button onclick="agregarPrecioSucursalBalanza()" class="btn-action-pastel" style="width: 100%; justify-content: center; height: 38px;">
+                        <span>+ Agregar a la Comparativa</span>
                     </button>
                 </div>
-            </div>
 
-            <!-- Tabla de Datos Líquidos (Foto 2 Izquierda) -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead>
-                            <tr class="bg-[#FCECE3] text-[#4A3E3D] font-bold border-b border-gray-100">
-                                <th class="p-3">Insumo Name</th>
-                                <th class="p-3">Precio (Costo) Pricié</th>
-                                <th class="p-3">Stock Stock</th>
-                                <th class="p-3">Mejor Distribuidora Distributor + Diff</th>
-                                <th class="p-3 text-center">Acciones Modify/Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50 font-medium text-gray-700">
-                            <tr class="hover:bg-gray-50/50">
-                                <td class="p-3 font-semibold text-[#4A3E3D]">Cuentas Corazón Rosa</td>
-                                <td class="p-3">$1.50/u</td>
-                                <td class="p-3">150u</td>
-                                <td class="p-3 text-emerald-700 font-bold">Gemas S.A. (+$2)</td>
-                                <td class="p-3 text-center space-x-2">
-                                    <button class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50/50">
-                                <td class="p-3 font-semibold text-[#4A3E3D]">Hilo Nylon 0.5mm</td>
-                                <td class="p-3">$8.00/m</td>
-                                <td class="p-3">220m</td>
-                                <td class="p-3 text-emerald-700 font-bold">Mercería Lety (+$0.50)</td>
-                                <td class="p-3 text-center space-x-2">
-                                    <button class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50/50">
-                                <td class="p-3 font-semibold text-[#4A3E3D]">Argollas Oro 6mm</td>
-                                <td class="p-3">$3.50/u</td>
-                                <td class="p-3">400u</td>
-                                <td class="p-3 text-emerald-700 font-bold">Metales Pro (+$1)</td>
-                                <td class="p-3 text-center space-x-2">
-                                    <button class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================================ -->
-        <!-- PESTAÑA 3: PRODUCCIÓN Y CATÁLOGO (TABLA EXCEL REFINADA)       -->
-        <!-- ============================================================ -->
-        <div id="pestaña-productos" class="space-y-4 hidden">
-            <!-- Barra superior con Filtro y Alta de Productos (Foto 2 Derecha) -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/60 p-3 rounded-xl border border-gray-100">
-                <h2 class="text-lg font-bold text-[#4A3E3D]">Producción / Catálogo - Gestión 🌸</h2>
-                <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                    <input type="text" placeholder="Filtrar Productos..." class="bg-white px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none w-full sm:w-56 focus:border-[#F48FB1]" />
-                    <button class="bg-[#FCE4C8] hover:bg-[#FADBB6] px-3 py-2 text-sm font-bold rounded-lg text-black flex items-center space-x-1 shrink-0 shadow-sm transition">
-                        <i data-lucide="plus" class="w-4 h-4"></i> <span>Agregar Nuevo Producto</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tabla de Catálogo Final (Foto 2 Derecha) -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead>
-                            <tr class="bg-[#FCECE3] text-[#4A3E3D] font-bold border-b border-gray-100">
-                                <th class="p-3">Producto Name</th>
-                                <th class="p-3">Precio Prod. Cost</th>
-                                <th class="p-3">Precio Venta Retail</th>
-                                <th class="p-3">Stock Venta Finished</th>
-                                <th class="p-3 text-center">Acciones Modify/Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50 font-medium text-gray-700">
-                            <tr class="hover:bg-gray-50/50">
-                                <td class="p-3 font-semibold text-[#4A3E3D]">Pulsera Corazón Rosa</td>
-                                <td class="p-3">$60</td>
-                                <td class="p-3 text-[#D81B60] font-bold">$150</td>
-                                <td class="p-3 font-bold text-gray-600">20</td>
-                                <td class="p-3 text-center space-x-2">
-                                    <button class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50/50">
-                                <td class="p-3 font-semibold text-[#4A3E3D]">Aretes Flores Pastel</td>
-                                <td class="p-3">$45</td>
-                                <td class="p-3 text-[#D81B60] font-bold">$120</td>
-                                <td class="p-3 font-bold text-gray-600">15</td>
-                                <td class="p-3 text-center space-x-2">
-                                    <button class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-gray-50/50">
-                                <td class="p-3 font-semibold text-[#4A3E3D]">Collar Luna Dorada</td>
-                                <td class="p-3">$110</td>
-                                <td class="p-3 text-[#D81B60] font-bold">$250</td>
-                                <td class="p-3 font-bold text-gray-600">8</td>
-                                <td class="p-3 text-center space-x-2">
-                                    <button class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                    <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <!-- ============================================================ -->
-        <!-- PESTAÑA 4: CAJA REGISTRADORA Y VENTAS (FOTO 1)               -->
-        <!-- ============================================================ -->
-        <div id="pestaña-ventas" class="grid grid-cols-1 lg:grid-cols-5 gap-6 hidden">
-            
-            <!-- Bloque Derecho: Formulario de Mostrador y Resumen Mensual (Ocupa 2 columnas) -->
-            <div class="lg:col-span-2 space-y-5">
-                
-                <!-- ====== FORMULARIO INTERACTIVO DE REGISTRO DE VENTA ====== -->
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                    <div class="flex items-center space-x-2 border-b border-gray-50 pb-2">
-                        <i data-lucide="shopping-cart" class="text-[#D81B60] w-5 h-5"></i>
-                        <h3 class="font-bold text-base text-[#4A3E3D]">Registrar Nueva Venta</h3>
+                <!-- Lista de comercios guardados en este insumo -->
+                <div>
+                    <h4 style="font-size: 12px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 6px;">Opciones Registradas en Sistema</h4>
+                    <div class="table-container" style="max-height: 180px; overflow-y: auto;">
+                        <table class="excel-table" style="font-size: 13px;">
+                            <thead>
+                                <tr style="background-color: #FAFAFA;">
+                                    <th style="padding: 8px 12px;">Comercio / Distribuidor</th>
+                                    <th style="padding: 8px 12px;">Precio Cotizado</th>
+                                    <th style="padding: 8px 12px; text-align: center; width: 60px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-balanza-sucursales">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- ============================================================ -->
+    <!-- PESTAÑA 3: CATÁLOGO DE PRODUCCIÓN REAL CON ESCANDALLO 🌸      -->
+    <!-- ============================================================ -->
+    <div id="pestaña-productos" style="display: flex; flex-direction: column; gap: 16px; width: 100%;" class="hidden">
+        
+        <!-- Barra de Herramientas con Filtro y Alta de Productos -->
+        <div class="table-toolbar">
+            <h2 style="font-size: 16px; font-weight: 700; color: #4A3E3D;">Producción / Catálogo - Real 🌸</h2>
+            <div style="display: flex; align-items: center; gap: 12px; justify-content: flex-end; width: 100%;">
+                <input type="text" id="filtro-productos-input" oninput="filtrarProductosReales()" placeholder="🔍 Buscar accesorio en tiempo real..." class="search-box" style="max-width: 280px;" />
+                <button onclick="abrirModalNuevoProducto()" class="btn-action-pastel">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    <span>Nuevo Producto</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de Datos Líquidos Reales -->
+        <div class="table-container">
+            <div class="responsive-table-wrapper">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th style="padding: 12px 16px;">Producto Name</th>
+                            <th style="padding: 12px 16px;">Precio Costo</th>
+                            <th style="padding: 12px 16px;">Precio Venta</th>
+                            <th style="padding: 12px 16px;">Stock Actual / Mín</th>
+                            <th style="text-align: center; width: 160px; padding: 12px 16px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <!-- Tabla que arranca totalmente en cero esperando tus datos -->
+                    <tbody id="tbody-productos-reales" class="divide-y">
+                        <!-- Las filas se inyectarán de forma automatizada desde el backend de js/app.js -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== ESTILOS COMPLEMENTARIOS PARA LA PESTAÑA DE VENTAS Y MODALES ====== -->
+    <style>
+        .split-box { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; width: 100%; align-items: start; }
+        .order-card { background: white; padding: 16px; border-radius: 16px; border: 1px solid #EBEBEB; display: flex; flex-direction: column; gap: 12px; }
+        .badge-green { background-color: #E2F0D9; color: #2E7D32; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; border: 1px solid #C5E1A5; width: fit-content; }
+        .badge-orange { background-color: #FFF3E0; color: #A04000; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; border: 1px solid #FFE0B2; width: fit-content; }
+        
+        /* Celdas analíticas de totales */
+        .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; text-align: center; }
+        .analytics-cell { background-color: #FFF3EB; border: 1px solid rgba(254,228,200,0.4); padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 2px; }
+        
+        /* Inputs y Selectores de Formulario */
+        .form-select, .form-input { width: 100%; background-color: rgba(255,245,247,0.4); padding: 10px 14px; font-size: 14px; font-weight: 600; border-radius: 12px; border: 1px solid #E2E8F0; outline: none; font-family: 'Quicksand', sans-serif; transition: border-color 0.2s; color: #4A3E3D; }
+        .form-select:focus, .form-input:focus { border-color: #F48FB1; }
+        
+        /* Estructura Global de Ventanas Modales */
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+        .modal-card { background: white; max-width: 440px; border-radius: 20px; border: 1px solid #EBEBEB; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; width: 100%; }
+        
+        @media (max-width: 1024px) {
+            .split-box { grid-template-columns: 1fr; }
+        }
+    </style>
+    <!-- ====== MODAL: CREAR / MODIFICAR PRODUCTO REAL CON ESCANDALLO ====== -->
+    <div id="modal-alta-producto" class="modal-overlay hidden">
+        <div class="modal-card" style="max-w: 550px; width: 95%;">
+            <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="sparkles" style="color: #D81B60; width: 18px; height: 18px;"></i>
+                    <h3 id="titulo-modal-producto" style="font-size: 15px; font-weight: 700; color: #4A3E3D;">Nuevo Accesorio para Venta</h3>
+                </div>
+                <button type="button" onclick="cerrarModalNuevoProducto()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            
+            <form id="form-real-producto" onsubmit="guardarProductoReal(event)" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; max-height: 85vh; overflow-y: auto;">
+                <input type="hidden" id="producto-real-id" />
+                
+                <!-- Datos básicos obligatorios -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Nombre del Accesorio</label>
+                        <input type="text" id="prod-real-nombre" required placeholder="Ej. Collar Primavera" class="form-input" />
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio de Venta ($)</label>
+                        <input type="number" id="prod-real-venta" required step="0.01" placeholder="Ej. 150" class="form-input" style="color: #D81B60; font-weight: 700;" />
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Actual</label>
+                        <input type="number" id="prod-real-stock" required placeholder="0" class="form-input" />
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Mínimo (Alerta)</label>
+                        <input type="number" id="prod-real-minimo" required placeholder="5" class="form-input" />
+                    </div>
+                </div>
+
+                <!-- Checkbox de Información Adicional (Abre la Receta de Escandallo) -->
+                <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0; background: #FFF5F7; padding: 10px; border-radius: 10px; border: 1px dashed #F48FB1;">
+                    <input type="checkbox" id="chk-info-adicional" onchange="toggleInfoAdicional()" style="width: 16px; height: 16px; cursor: pointer;" />
+                    <label for="chk-info-adicional" style="font-size: 12px; font-weight: 700; color: #D81B60; cursor: pointer; user-select: none;">🌸 Agregar Información Adicional (Receta e Insumos)</label>
+                </div>
+
+                <!-- Contenedor Desplegable de la Receta -->
+                <div id="seccion-receta-adicional" class="hidden" style="display: flex; flex-direction: column; gap: 12px; border-top: 1px dashed #E2E8F0; pt: 12px; padding-top: 10px;">
                     
-                    <div class="space-y-3">
-                        <!-- Selector de Producto Dinámico -->
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Seleccionar Accesorio</label>
-                            <select id="venta-producto-select" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-semibold text-[#4A3E3D]">
-                                <option value="">-- Elige del catálogo --</option>
+                    <!-- Sub-formulario para ir añadiendo insumos uno por uno -->
+                    <div style="background-color: #FAFAFA; border: 1px solid #E2E8F0; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
+                        <h4 style="font-size: 11px; font-weight: 700; color: #4A3E3D; text-transform: uppercase;">Añadir Insumo a la Receta</h4>
+                        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px;">
+                            <select id="receta-insumo-select" class="form-select" style="background: white;">
+                                <option value="">-- Seleccionar Insumo --</option>
                             </select>
+                            <input type="number" id="receta-insumo-cantidad" step="0.01" placeholder="Cantidad u/m" class="form-input" style="background: white; text-align: center;" />
                         </div>
+                        <button type="button" onclick="agregarInsumoARecetaTemporal()" class="btn-action-pastel" style="width: 100%; justify-content: center; height: 36px; font-size: 12px;">
+                            <span>+ Añadir Material</span>
+                        </button>
+                    </div>
 
-                        <div class="grid grid-cols-2 gap-3">
-                            <!-- Input de Cantidad -->
+                    <!-- Mini grilla de materiales agregados actualmente -->
+                    <div class="table-container" style="max-height: 120px; overflow-y: auto;">
+                        <table class="excel-table" style="font-size: 12px;">
+                            <thead>
+                                <tr style="background: #FAFAFA;">
+                                    <th style="padding: 6px 10px;">Material</th>
+                                    <th style="padding: 6px 10px; text-align: center;">Cantidad</th>
+                                    <th style="padding: 6px 10px; text-align: right;">Costo Parcial</th>
+                                    <th style="padding: 6px 10px; text-align: center; width: 40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-receta-temporal">
+                                <!-- Elementos agregados dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Bloque Analítico Calculadora de Costo y Margen de Ganancia -->
+                    <div style="background: #FFF3EB; border: 1px solid #FFE0B2; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: 700; color: #E65100;">
+                            <span>Precio de Producción (Costo):</span>
+                            <span id="calc-costo-total">$0.00</span>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: center; margin-top: 4px;">
                             <div>
-                                <label class="block text-[11px] font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Cantidad</label>
-                                <input type="number" id="venta-cantidad" min="1" value="1" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium text-center" />
+                                <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 2px;">Margen de Ganancia</label>
+                                <input type="number" id="prod-real-margen" value="100" oninput="calcularPrecioSugeridoReal()" class="form-input" style="background: white; height: 36px;" />
                             </div>
-                            <!-- Selector de Medio de Pago -->
                             <div>
-                                <label class="block text-[11px] font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Medio de Pago</label>
-                                <select id="venta-metodo" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium">
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Transferencia">Transferencia</option>
+                                <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 2px;">Unidad Margen</label>
+                                <select id="prod-real-tipo-margen" onchange="calcularPrecioSugeridoReal()" class="form-select" style="background: white; height: 36px;">
+                                    <option value="porcentaje">Porcentaje (%)</option>
+                                    <option value="entero">Entero ($)</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Botón de Envío Naranja Pastel Incorporado en el Flujo -->
-                        <button onclick="procesarVentaMostrador(event)" class="w-full bg-[#FCE4C8] hover:bg-[#FADBB6] text-black font-bold p-3.5 rounded-xl shadow-sm transition flex items-center justify-center space-x-2 text-sm mt-2">
-                            <i data-lucide="check" class="w-4 h-4"></i> <span>Confirmar y Registrar Venta</span>
+                        <div style="display: flex; justify-content: space-between; font-weight: 700; color: #2E7D32; border-top: 1px dashed #FFE0B2; pt: 8px; padding-top: 6px; font-size: 14px;">
+                            <span>Precio Sugerido Final:</span>
+                            <span id="calc-precio-sugerido">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Guardar / Cancelar -->
+                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                    <button type="button" onclick="cerrarModalNuevoProducto()" style="width: 35%; background-color: #F5F5F5; border: none; padding: 11px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Cancelar</button>
+                    <button type="submit" style="width: 65%; background-color: #FCE4C8; border: none; padding: 11px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Guardar en Catálogo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+       <!-- ============================================================ -->
+    <!-- PESTAÑA 4: CAJA REGISTRADORA REAL Y MULTIPRODUCTO 💰         -->
+    <!-- ============================================================ -->
+    <div id="pestaña-ventas" class="split-box hidden">
+        
+        <!-- Bloque Izquierdo: Filtros de Tiempo e Historial Real -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            
+            <!-- Selectores de Tiempo Interactivos para Filtrar la Caja -->
+            <div style="display: flex; align-items: center; gap: 10px; background-color: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid #EBEBEB;">
+                <h3 style="font-size: 14px; font-weight: 700; color: #4A3E3D; margin-right: 4px;">Filtro Caja:</h3>
+                <button onclick="cambiarFiltroTiempoCaja('DIA')" id="btn-filtro-dia" class="btn-action-pastel" style="padding: 8px 14px; font-size: 12px;">
+                    <i data-lucide="calendar-days" style="width: 14px; height: 14px;"></i> <span>Día</span>
+                </button>
+                <button onclick="cambiarFiltroTiempoCaja('SEMANA')" id="btn-filtro-semana" class="btn-action-pastel" style="padding: 8px 14px; font-size: 12px; background-color: transparent; border: 1px solid #F48FB1; color: #D81B60;">
+                    <i data-lucide="calendar-range" style="width: 14px; height: 14px;"></i> <span>Semana</span>
+                </button>
+                <button onclick="cambiarFiltroTiempoCaja('MES')" id="btn-filtro-mes" class="btn-action-pastel" style="padding: 8px 14px; font-size: 12px; background-color: transparent; border: 1px solid #F48FB1; color: #D81B60;">
+                    <i data-lucide="calendar-days" style="width: 14px; height: 14px;"></i> <span>Mes</span>
+                </button>
+            </div>
+
+            <!-- Listado del Historial que renderizará los pedidos reales de IndexedDB -->
+            <h3 style="font-size: 15px; font-weight: 700; color: #4A3E3D; margin-top: 4px;">Órdenes Recientes</h3>
+            <div id="contenedor-historial-ventas-real" style="display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: 480px; padding-right: 4px;">
+                <!-- Las tarjetas de tickets reales de mostrador se inyectarán de forma dinámica -->
+            </div>
+        </div>
+
+    <!-- ====== VENTANA MODAL: FORMULARIO DE ALTA DE PRODUCTO TERMINADO ====== -->
+    <div id="modal-producto" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="sparkles" style="color: #D81B60; width: 18px; height: 18px;"></i>
+                    <h3 style="font-size: 15px; font-weight: 700; color: #4A3E3D;">Nuevo Accesorio para Catálogo</h3>
+                </div>
+                <button type="button" onclick="cerrarModalProducto()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <form id="form-nuevo-producto" onsubmit="procesarGuardarProducto(event)" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Nombre del Producto</label>
+                    <input type="text" id="prod-nombre" required placeholder="Ej. Collar Luna Dorada" class="form-input" />
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Costo Prod. ($)</label>
+                        <input type="number" id="prod-costo" required step="0.01" placeholder="Ej. 110" class="form-input" />
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio Venta ($)</label>
+                        <input type="number" id="prod-venta" required step="0.01" placeholder="Ej. 250" class="form-input" style="color: #D81B60; font-weight: 700;" />
+                    </div>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Inicial Terminado</label>
+                    <input type="number" id="prod-stock" required placeholder="Ej. 8" class="form-input" />
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                    <button type="button" onclick="cerrarModalProducto()" style="width: 35%; background-color: #F5F5F5; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Cancelar</button>
+                    <button type="submit" style="width: 65%; background-color: #FCE4C8; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+        <!-- Bloque Derecho: Mostrador e Indicadores Reales en Pesos Argentinos ($ ARS) -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- Tarjeta de Totales Filtrados de la Caja -->
+            <div class="card" style="padding: 16px;">
+                <h3 id="titulo-resumen-periodo" style="font-size: 15px; font-weight: 700; color: #4A3E3D; margin-bottom: 10px;">Resumen de Caja (DIA)</h3>
+                <div class="analytics-grid">
+                    <div class="analytics-cell" style="grid-column: span 2;">
+                        <span id="caja-total-recaudado" style="font-size: 22px; font-weight: 700; color: #2E7D32; display: block;">$ 0.00 ARS</span>
+                        <span style="font-size: 9px; font-weight: 700; color: #999999; text-transform: uppercase;">Total Recaudado</span>
+                    </div>
+                    <div class="analytics-cell">
+                        <span id="caja-cantidad-ventas" style="font-size: 22px; font-weight: 700; color: #4A3E3D; display: block;">0</span>
+                        <span style="font-size: 9px; font-weight: 700; color: #999999; text-transform: uppercase;">Tickets</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== FORMULARIO INTERACTIVO: CARRITO MULTIPRODUCTO DE MOSTRADOR ====== -->
+            <div class="card" style="padding: 20px; gap: 14px;">
+                <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #FAFAFA; padding-bottom: 8px;">
+                    <i data-lucide="shopping-bag" style="color: #D81B60; width: 18px; height: 18px;"></i>
+                    <h3 style="font-size: 15px; font-weight: 700; color: #4A3E3D;">Armar Ticket de Venta</h3>
+                </div>
+                
+                <!-- Inputs de Línea: Seleccionar artículo e ingresar cantidad -->
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Seleccionar Accesorio</label>
+                        <select id="carrito-producto-select" class="form-select">
+                            <option value="">-- Elige del catálogo --</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; align-items: flex-end;">
+                        <div>
+                            <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Cantidad</label>
+                            <input type="number" id="carrito-cantidad-input" min="1" value="1" class="form-input" style="text-align: center;" />
+                        </div>
+                        <button type="button" onclick="agregarLineaAlCarritoTemporal()" class="btn-action-pastel" style="width: 100%; justify-content: center; height: 42px; font-size: 12px; background-color: #E3F2FD; color: #1565C0; border: 1px solid #BBDEFB;">
+                            <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i> <span>+ Al Carrito</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Resumen Mensual (Mantenemos la tarjeta analítica de la foto abajo) -->
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                    <h3 class="font-bold text-sm text-[#4A3E3D]">Resumen Mensual (Junio)</h3>
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="bg-[#FFF3EB] p-2 rounded-xl">
-                            <span class="text-sm font-bold text-[#4A3E3D] block">$4850</span>
-                            <span class="text-[9px] font-semibold text-gray-400 uppercase tracking-tight">Total</span>
-                        </div>
-                        <div class="bg-[#FFF3EB] p-2 rounded-xl">
-                            <span class="text-sm font-bold text-[#4A3E3D] block">45</span>
-                            <span class="text-[9px] font-semibold text-gray-400 uppercase tracking-tight">Ventas</span>
-                        </div>
-                        <div class="bg-[#FFF3EB] p-2 rounded-xl">
-                            <span class="text-sm font-bold text-[#4A3E3D] block">$107</span>
-                            <span class="text-[9px] font-semibold text-gray-400 uppercase tracking-tight">Promedio</span>
-                        </div>
+                <!-- Listado del Contenido Provisional del Ticket Actual -->
+                <div>
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Artículos en la Orden Actual</label>
+                    <div class="table-container" style="max-height: 140px; overflow-y: auto;">
+                        <table class="excel-table" style="font-size: 13px;">
+                            <thead>
+                                <tr style="background: #FAFAFA;">
+                                    <th style="padding: 6px 10px;">Descripción</th>
+                                    <th style="padding: 6px 10px; text-align: right; width: 90px;">Subtotal</th>
+                                    <th style="padding: 6px 10px; text-align: center; width: 40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-carrito-mostrador">
+                                <!-- Filas de ítems añadidos -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
 
-            </div>
-
-            <!-- Bloque Derecho: Resumen Mensual Analítico y Botón (Ocupa 2 columnas) -->
-            <div class="lg:col-span-2 space-y-5">
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                    <h3 class="font-bold text-base text-[#4A3E3D]">Resumen Mensual (Junio)'</h3>
+                <!-- Selector de medio de pago y botón final de asentamiento -->
+                <div style="border-top: 1px dashed #E2E8F0; padding-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 15px; color: #D81B60;">
+                        <span>Total del Ticket:</span>
+                        <span id="label-total-carrito-mostrador">$ 0.00 ARS</span>
+                    </div>
                     
-                    <!-- Indicadores compactos estilo celda -->
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="bg-[#FFF3EB] p-2.5 rounded-xl border border-[#FCE4C8]/30">
-                            <span class="text-base font-bold text-[#4A3E3D] block">\$4850</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tight">Total MXN</span>
-                        </div>
-                        <div class="bg-[#FFF3EB] p-2.5 rounded-xl border border-[#FCE4C8]/30">
-                            <span class="text-base font-bold text-[#4A3E3D] block">45</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tight">Ventas Totales</span>
-                        </div>
-                        <div class="bg-[#FFF3EB] p-2.5 rounded-xl border border-[#FCE4C8]/30">
-                            <span class="text-sm font-bold text-[#4A3E3D] block mt-0.5">\$107 MXN</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tight">Venta Promedio</span>
-                        </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Medio de Pago</label>
+                        <select id="carrito-metodo-pago" class="form-select">
+                            <option value="Efectivo">Efectivo 💵</option>
+                            <option value="Transferencia">Transferencia 📱</option>
+                        </select>
                     </div>
 
-                    <!-- Métodos de pago líquidos -->
-                    <div class="border-t border-gray-100 pt-3 space-y-2.5 text-sm font-semibold text-gray-600">
-                        <p class="text-[#8A7A78] font-bold text-xs uppercase tracking-wider mb-1">Medios de Pago</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-500 font-medium">Cliente &raquo; \$4850 MXN</span>
-                            <span class="text-gray-400 text-xs">Venta Promedio \$107 MXN</span>
-                        </div>
-                        <!-- Mini gráfico lineal decorativo simulado de la foto -->
-                        <div class="h-20 w-full bg-[#FFF5F7]/50 rounded-xl border border-[#FCE4C8]/20 relative overflow-hidden p-2 flex items-center justify-center">
-                            <span class="text-[10px] text-gray-400 font-medium">Historial gráfico de caja activo</span>
-                        </div>
-                    </div>
+                    <button type="button" onclick="confirmarYRegistrarVentaConjunta()" class="btn-action-pastel" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px; margin-top: 4px;">
+                        <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                        <span>Confirmar Venta Conjunta</span>
+                    </button>
                 </div>
 
-                <!-- Botón de Acción Naranja Pastel Principal -->
-                <button class="w-full bg-[#FCE4C8] hover:bg-[#FADBB6] text-black font-bold p-4 rounded-xl shadow-sm transition flex items-center justify-center space-x-2 text-base">
-                    <i data-lucide="plus" class="w-5 h-5"></i> <span>Registrar Nueva Venta</span>
-                </button>
             </div>
         </div>
+    </div>
 
-            <!-- ====== VENTANA MODAL: FORMULARIO DE ALTA DE PRODUCTO TERMINADO ====== -->
-    <div id="modal-producto" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-[100] p-4 animate-fade-in">
-        <div class="bg-white w-full max-w-md rounded-2xl border border-gray-100 shadow-xl overflow-hidden transform transition-all">
-            
-            <!-- Encabezado del Formulario Pastel -->
-            <div class="bg-[#FCE4EC] p-4 border-b border-[#F48FB1] flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="sparkles" class="text-[#D81B60] w-5 h-5"></i>
-                    <h3 class="font-bold text-[#4A3E3D] text-base">Nuevo Accesorio para Catálogo</h3>
+    <!-- ====== VENTANA MODAL: FORMULARIO DE ALTA DE INSUMOS ====== -->
+    <div id="modal-insumo" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="package" style="color: #D81B60; width: 18px; height: 18px;"></i>
+                    <h3 style="font-size: 15px; font-weight: 700; color: #4A3E3D;">Nuevo Insumo / Material</h3>
                 </div>
-                <button onclick="cerrarModalProducto()" class="text-[#8A7A78] hover:bg-white/50 p-1 rounded-lg transition">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                <button type="button" onclick="cerrarModalInsumo()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
                 </button>
             </div>
-
-            <!-- Cuerpo con Inputs Cómodos para Pantallas Táctiles -->
-            <form id="form-nuevo-producto" onsubmit="procesarGuardarProducto(event)" class="p-5 space-y-4">
+            <form id="form-nuevo-insumo" onsubmit="procesarGuardarInsumo(event)" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
                 <div>
-                    <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Nombre del Producto</label>
-                    <input type="text" id="prod-nombre" required placeholder="Ej. Collar Luna Dorada" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium" />
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Nombre del Material</label>
+                    <input type="text" id="insumo-nombre" required placeholder="Ej. Hilo Nylon 0.5mm" class="form-input" />
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
-                        <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Costo de Prod. ($)</label>
-                        <input type="number" id="prod-costo" required step="0.01" placeholder="Ej. 110" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium" />
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio Costo ($)</label>
+                        <input type="number" id="insumo-precio" required step="0.01" placeholder="Ej. 8.00" class="form-input" />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Precio Venta ($)</label>
-                        <input type="number" id="prod-venta" required step="0.01" placeholder="Ej. 250" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-bold text-[#D81B60]" />
+                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Inicial</label>
+                        <input type="text" id="insumo-stock" required placeholder="Ej. 220m o 150u" class="form-input" />
                     </div>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Stock Inicial Terminado</label>
-                    <input type="number" id="prod-stock" required placeholder="Ej. 8" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium" />
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Mejor Distribuidora / Proveedor</label>
+                    <input type="text" id="insumo-distribuidora" placeholder="Ej. Mercería Lety (+$0.50)" class="form-input" />
                 </div>
-
-                <!-- Botón de Confirmación de Alta -->
-                <div class="pt-2 flex space-x-2">
-                    <button type="button" onclick="cerrarModalProducto()" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 text-sm rounded-xl transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="w-2/3 bg-[#FCE4C8] hover:bg-[#FADBB6] text-black font-bold py-2.5 text-sm rounded-xl shadow-sm transition flex items-center justify-center space-x-1">
-                        <i data-lucide="check" class="w-4 h-4"></i> <span>Guardar Producto</span>
-                    </button>
+                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                    <button type="button" onclick="cerrarModalInsumo()" style="width: 35%; background-color: #F5F5F5; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Cancelar</button>
+                    <button type="submit" style="width: 65%; background-color: #FCE4C8; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Guardar Insumo</button>
                 </div>
             </form>
         </div>
     </div>
-        <!-- ====== VENTANA MODAL: FORMULARIO DE ALTA DE INSUMOS / MATERIALES ====== -->
-    <div id="modal-insumo" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4 animate-fade-in">
-        <div class="bg-white w-full max-w-md rounded-2xl border border-gray-100 shadow-xl overflow-hidden transform transition-all">
-            
-            <!-- Encabezado del Formulario Pastel -->
-            <div class="bg-[#FCE4EC] p-4 border-b border-[#F48FB1] flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="package" class="text-[#D81B60] w-5 h-5"></i>
-                    <h3 class="font-bold text-[#4A3E3D] text-base">Nuevo Insumo / Material</h3>
-                </div>
-                <button onclick="cerrarModalInsumo()" class="text-[#8A7A78] hover:bg-white/50 p-1 rounded-lg transition">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <!-- Cuerpo del Formulario Táctil -->
-            <form id="form-nuevo-insumo" onsubmit="procesarGuardarInsumo(event)" class="p-5 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Nombre del Material</label>
-                    <input type="text" id="insumo-nombre" required placeholder="Ej. Hilo Nylon 0.5mm" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Precio Costo ($)</label>
-                        <input type="number" id="insumo-precio" required step="0.01" placeholder="Ej. 8.00" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Stock Inicial</label>
-                        <input type="text" id="insumo-stock" required placeholder="Ej. 220m o 150u" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium" />
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-[#8A7A78] uppercase tracking-wider mb-1">Mejor Distribuidora / Proveedor</label>
-                    <input type="text" id="insumo-distribuidora" placeholder="Ej. Mercería Lety (+$0.50)" class="w-full bg-[#FFF5F7]/40 px-3 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-[#F48FB1] font-medium" />
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="pt-2 flex space-x-2">
-                    <button type="button" onclick="cerrarModalInsumo()" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 text-sm rounded-xl transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="w-2/3 bg-[#FCE4C8] hover:bg-[#FADBB6] text-black font-bold py-2.5 text-sm rounded-xl shadow-sm transition flex items-center justify-center space-x-1">
-                        <i data-lucide="check" class="w-4 h-4"></i> <span>Guardar Insumo</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     </main>
 
-    <!-- ====== SCRIPT INTEGRADO DE COMPORTAMIENTO LOCAL ====== -->
+    <!-- ====== LÓGICA INTEGRADA DE CONTROL DE PESTAÑAS ====== -->
     <script>
-        // Inicializa todos los iconos Lucide del menú y tarjetas
+        // Dibujar los iconos vectoriales de Lucide al iniciar la app
         lucide.createIcons();
 
         function cambiarPestaña(pestañaId) {
+            // Lista de identificadores de cada contenedor de pantalla
             const pestañas = ['resumen', 'insumos', 'productos', 'ventas'];
             
             pestañas.forEach(p => {
                 const elemento = document.getElementById(`pestaña-${p}`);
                 const boton = document.getElementById(`btn-${p}`);
                 
-                if (p === pestañaId) {
-                    elemento.classList.remove('hidden');
-                    // Estilo de pestaña activa (Blanco con borde rosa destacado)
-                    boton.className = "flex flex-col md:flex-row items-center md:space-x-3 p-2 md:p-3 rounded-xl w-full text-sm font-semibold transition bg-white text-[#D81B60] shadow-sm border border-[#F48FB1]";
-                } else {
-                    elemento.classList.add('hidden');
-                    // Estilo de pestaña inactiva (Texto grisáceo transparente)
-                    boton.className = "flex flex-col md:flex-row items-center md:space-x-3 p-2 md:p-3 rounded-xl w-full text-sm font-semibold transition text-[#8A7A78] hover:bg-white/40";
+                if (elemento && boton) {
+                    if (p === pestañaId) {
+                        // Quitar la clase que oculta el bloque y activar el botón
+                        elemento.classList.remove('hidden');
+                        boton.classList.add('active');
+                    } else {
+                        // Ocultar el bloque de la pantalla inactiva
+                        elemento.classList.add('hidden');
+                        boton.classList.remove('active');
+                    }
                 }
             });
         }
     </script>
-        <!-- ====== ENLACE CON LOS SCRIPTS OPERATIVOS DEL SISTEMA ====== -->
+
+    <!-- ====== CONEXIÓN CON LOS SCRIPT OPERATIVOS DE TU CARPETA JS ====== -->
     <script src="js/db.js"></script>
     <script src="js/app.js"></script>
 </body>
