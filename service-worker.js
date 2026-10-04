@@ -1,6 +1,6 @@
 // ====== BRAZO OFFLINE: SERVICE WORKER PARA GESTIÓN SIN INTERNET ======
 
-const CACHE_NAME = "LetyAccesoriosCache-v3";
+const CACHE_NAME = "LetyAccesoriosCache-v5";
 
 
 // Listado de archivos esenciales que el teléfono memorizará de forma local
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
     "./js/db.js",
     "./js/app.js",
     "./js/lucide.min.js",
+    "./images/logo.png",
     // Librerías externas cacheadas automáticamente por seguridad móvil
     "https://tailwindcss.com",
     "https://unpkg.com",
