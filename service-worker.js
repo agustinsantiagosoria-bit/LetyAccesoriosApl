@@ -11,7 +11,7 @@ const ASSETS_TO_CACHE = [
     "./js/db.js",
     "./js/app.js",
     "./js/lucide.min.js",
-    "./images/logo.png",
+    "./logo.png",
     // Librerías externas cacheadas automáticamente por seguridad móvil
     "https://tailwindcss.com",
     "https://unpkg.com",

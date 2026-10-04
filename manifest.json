@@ -3,7 +3,7 @@
   "name": "Lety Accesorios - Gestión Integral",
   "icons": [
     {
-      "src": "images/icons/icon-192x192.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
