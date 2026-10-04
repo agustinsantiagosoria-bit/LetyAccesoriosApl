@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lety Accesorios - Gestión de Stock</title>
+    <!-- ====== ICONO DE LA PESTAÑA DEL NAVEGADOR CORREGIDO ====== -->
+    <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="manifest" href="manifest.json">
     <!-- Fuente Quicksand: Limpia y estética -->
     <link href="https://googleapis.com" rel="stylesheet">
@@ -49,16 +51,17 @@
         }
         .logo-circle { 
             background-color: white; 
-            padding: 10px; 
+            padding: 4px; /* Menos relleno para que la imagen ocupe más espacio */
             border-radius: 50%; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-            width: 44px; 
-            height: 44px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08); 
+            width: 70px;  /* Agrandado de 44px a 70px */
+            height: 70px; /* Agrandado de 44px a 70px */
             display: flex; 
             align-items: center; 
             justify-content: center; 
             margin: 0 auto; 
         }
+
         
         .nav-menu { 
             display: flex; 
@@ -148,7 +151,7 @@
     <div class="sidebar">
         <div class="logo-container">
             <div class="logo-circle">
-                <i data-lucide="heart" style="color: #D81B60; fill: #F48FB1; width: 22px; height: 22px;"></i>
+                <img src="images/logo.png" alt="Logo Lety" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;" />
             </div>
             <div>
                 <h1 style="font-size: 20px; font-weight: 700; color: #4A3E3D; line-height: 1.2;">Lety</h1>
