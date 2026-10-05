@@ -8,7 +8,9 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <!-- Fuente Quicksand: Limpia y estética -->
-    <link href="https://googleapis.com" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <!-- ====== LIBRERÍA DE ICONOS LOCAL BLINDADA OFFLINE ====== -->
     <script src="js/lucide.min.js"></script>
@@ -143,9 +145,10 @@
                 padding-bottom: 90px; 
             }
         }
-
+        
     </style>
 </head>
+
 <body>
 
     <!-- ====== MENÚ DE NAVEGACIÓN ====== -->
@@ -334,6 +337,7 @@
         .row-btn-edit:hover { background-color: #E3F2FD; }
         .row-btn-delete { color: #E53935; }
         .row-btn-delete:hover { background-color: #FFEBEE; }
+        .excel-table td .row-btn + .row-btn { margin-left: 8px; }
     </style>
 
        <!-- ============================================================ -->
@@ -349,7 +353,7 @@
                 <input type="text" id="filtro-insumos-input" oninput="filtrarInsumosReales()" placeholder="🔍 Buscar insumo en tiempo real..." class="search-box" style="max-width: 280px;" />
                 <button onclick="abrirModalNuevoInsumo()" class="btn-action-pastel">
                     <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
-                    <span>Nuevo Insumo</span>
+                    <span>+ Insumo</span>
                 </button>
             </div>
         </div>
@@ -399,7 +403,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                         <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio Inicial ($)</label>
-                        <input type="number" id="insumo-real-precio" required step="0.01" placeholder="Ej. 8.00" class="form-input" />
+                        <input type="number" id="insumo-real-precio" required step="any" min="0" step="any" placeholder="Ej. 8.00" class="form-input" />
                     </div>
                     <div>
                         <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Unidad de Medida</label>
@@ -408,7 +412,10 @@
                             <option value="xM">Por Metro (xM)</option>
                         </select>
                     </div>
-                </div>
+                </div><div>
+    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock actual</label>
+    <input type="number" id="insumo-real-stock" min="0" step="0.01" placeholder="Ej. 220" class="form-input" />
+</div>
 
 <!-- NUEVO: Campos para calcular costo fraccionado por rendimiento (Ocultos inicialmente) -->
 <div id="contenedor-rendimiento" class="hidden" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background-color: #FFF3F8; padding: 12px; border-radius: 12px; border: 1px dashed #F48FB1;">
@@ -446,11 +453,9 @@
                     <h3 id="balanza-insumo-titulo" style="font-size: 15px; font-weight: 700; color: #1565C0;">Comparador de Sucursales</h3>
                 </div>
                 <!-- Botón de Cierre Inferior para Cancelar/Salir del Comparador -->
-                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
-                    <button type="button" onclick="cerrarModalBalanza()" style="width: 100%; background-color: #F5F5F5; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand'; color: #4A3E3D;">
-                        Cerrar Comparador
-                    </button>
-                </div>
+   <button type="button" onclick="cerrarModalBalanza()" style="border: none; background: transparent; cursor: pointer; color: #1565C0;">
+       <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+   </button>
 
             </div>
             
@@ -578,18 +583,18 @@
                     </div>
                     <div>
                         <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio de Venta ($)</label>
-                        <input type="number" id="prod-real-venta" required step="0.01" placeholder="Ej. 150" class="form-input" style="color: #D81B60; font-weight: 700;" />
+                        <input type="number" id="prod-real-venta" required step="any" min="0" placeholder="Ej. 150" class="form-input" style="color: #D81B60; font-weight: 700;" />
                     </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                         <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Actual</label>
-                        <input type="number" id="prod-real-stock" required placeholder="0" class="form-input" />
+                        <input type="number" id="prod-real-stock" required min="0" placeholder="0" class="form-input" />
                     </div>
                     <div>
                         <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Mínimo (Alerta)</label>
-                        <input type="number" id="prod-real-minimo" required placeholder="5" class="form-input" />
+                        <input type="number" id="prod-real-minimo" required min="0" placeholder="5" class="form-input" />
                     </div>
                 </div>
 
@@ -706,43 +711,7 @@
         </div>
 
     <!-- ====== VENTANA MODAL: FORMULARIO DE ALTA DE PRODUCTO TERMINADO ====== -->
-    <div id="modal-producto" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="sparkles" style="color: #D81B60; width: 18px; height: 18px;"></i>
-                    <h3 style="font-size: 15px; font-weight: 700; color: #4A3E3D;">Nuevo Accesorio para Catálogo</h3>
-                </div>
-                <button type="button" onclick="cerrarModalProducto()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-                </button>
-            </div>
-            <form id="form-nuevo-producto" onsubmit="procesarGuardarProducto(event)" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
-                <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Nombre del Producto</label>
-                    <input type="text" id="prod-nombre" required placeholder="Ej. Collar Luna Dorada" class="form-input" />
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Costo Prod. ($)</label>
-                        <input type="number" id="prod-costo" required step="0.01" placeholder="Ej. 110" class="form-input" />
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio Venta ($)</label>
-                        <input type="number" id="prod-venta" required step="0.01" placeholder="Ej. 250" class="form-input" style="color: #D81B60; font-weight: 700;" />
-                    </div>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Inicial Terminado</label>
-                    <input type="number" id="prod-stock" required placeholder="Ej. 8" class="form-input" />
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 8px;">
-                    <button type="button" onclick="cerrarModalProducto()" style="width: 35%; background-color: #F5F5F5; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Cancelar</button>
-                    <button type="submit" style="width: 65%; background-color: #FCE4C8; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Guardar Producto</button>
-                </div>
-            </form>
-        </div>
-    </div>
+
         <!-- Bloque Derecho: Mostrador e Indicadores Reales en Pesos Argentinos ($ ARS) -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
             
@@ -833,43 +802,6 @@
     </div>
 
     <!-- ====== VENTANA MODAL: FORMULARIO DE ALTA DE INSUMOS ====== -->
-    <div id="modal-insumo" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div style="background-color: #FCE4EC; padding: 16px; border-bottom: 1px solid #F48FB1; display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="package" style="color: #D81B60; width: 18px; height: 18px;"></i>
-                    <h3 style="font-size: 15px; font-weight: 700; color: #4A3E3D;">Nuevo Insumo / Material</h3>
-                </div>
-                <button type="button" onclick="cerrarModalInsumo()" style="border: none; background: transparent; cursor: pointer; color: #8A7A78;">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-                </button>
-            </div>
-            <form id="form-nuevo-insumo" onsubmit="procesarGuardarInsumo(event)" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
-                <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Nombre del Material</label>
-                    <input type="text" id="insumo-nombre" required placeholder="Ej. Hilo Nylon 0.5mm" class="form-input" />
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Precio Costo ($)</label>
-                        <input type="number" id="insumo-precio" required step="0.01" placeholder="Ej. 8.00" class="form-input" />
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Stock Inicial</label>
-                        <input type="text" id="insumo-stock" required placeholder="Ej. 220m o 150u" class="form-input" />
-                    </div>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; color: #8A7A78; text-transform: uppercase; margin-bottom: 4px;">Mejor Distribuidora / Proveedor</label>
-                    <input type="text" id="insumo-distribuidora" placeholder="Ej. Mercería Lety (+$0.50)" class="form-input" />
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 8px;">
-                    <button type="button" onclick="cerrarModalInsumo()" style="width: 35%; background-color: #F5F5F5; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Cancelar</button>
-                    <button type="submit" style="width: 65%; background-color: #FCE4C8; border: none; padding: 10px; font-weight: 700; border-radius: 12px; cursor: pointer; font-family: 'Quicksand';">Guardar Insumo</button>
-                </div>
-            </form>
-        </div>
-    </div>
     </main>
 
        <!-- ====== LÓGICA INTEGRADA DE CONTROL DE PESTAÑAS ====== -->
@@ -903,29 +835,19 @@
     <script src="js/db.js"></script>
     <script src="js/app.js"></script>
     
-    <script>
-        // Registrar eventos de apertura nativos para los botones una vez cargada la interfaz
-        document.addEventListener("DOMContentLoaded", () => {
-            // Inicializar iconos globales de la plantilla estática
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-
-            // Enlazar de forma segura los botones de alta hacia las funciones de app.js
-            setTimeout(() => {
-                const botones = document.querySelectorAll("button");
-                botones.forEach(btn => {
-                    const texto = btn.innerText.toLowerCase();
-                    if (texto.includes("nuevo producto") || texto.includes("agregar nuevo producto")) {
-                        btn.setAttribute("onclick", "abrirModalNuevoProducto()");
-                    }
-                    if (texto.includes("nuevo insumo") || texto.includes("agregar insumo")) {
-                        btn.setAttribute("onclick", "abrirModalNuevoInsumo()");
-                    }
-                });
-            }, 600);
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+</script>
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("service-worker.js")
+                .catch(err => console.warn("Service worker no registrado:", err));
         });
-    </script>
+    }
+</script>
 </body>
 </html>
 

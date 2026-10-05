@@ -12,25 +12,24 @@ let _sucursalesBalanzaTemporal = [];
 let _idInsumoBalanzaActivo = null;
 
 // Escuchar la carga de la interfaz y conectar con IndexedDB de db.js
-document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(async () => {
-        try {
-            await cargarTodoElSistemaReal();
-        } catch (error) {
-            console.warn("Sincronizando hilos con IndexedDB local...", error);
-        }
-    }, 250);
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await dbListo;                 // definida en db.js
+        await cargarTodoElSistemaReal();
+    } catch (error) {
+        console.error("No se pudo iniciar el sistema:", error);
+    }
 });
 
-// CORREGIDO: Nombres de variables unificados sin cortes
 async function cargarTodoElSistemaReal() {
     try {
         _todosLosInsumos = await obtenerTodosLosRegistros("insumos");
         _todosLosProductos = await obtenerTodosLosRegistros("productos");
         _todasLasVentas = await obtenerTodosLosRegistros("ventas");
 
-        await renderizarInsumosReales();
-        await renderizarProductosReales();
+        // Estas dos respetan el texto que haya en el buscador
+        filtrarInsumosReales();
+        filtrarProductosReales();
         await renderizarCajaYHistorialReal();
         await renderizarPestañaPrincipalResumen();
     } catch (ex) {
@@ -67,13 +66,13 @@ async function renderizarInsumosReales(listaFiltrada = null) {
             if (insumo.sucursales.length > 1) {
                 const peor = sucursalesOrdenadas[sucursalesOrdenadas.length - 1];
                 const ahorro = peor.precio - ideal.precio;
-                detallesProveedor = `${ideal.nombre} ⚖️ (Ahorra: $${ahorro.toFixed(2)})`;
+                detallesProveedor = `${esc(ideal.nombre)} ⚖️ (Ahorra: $${ahorro.toFixed(2)})`;
             } else {
-                detallesProveedor = `${ideal.nombre} ✨ (Ideal)`;
+                detallesProveedor = `${esc(ideal.nombre)} ✨ (Ideal)`;
             }
             precioBaseDisplay = parseFloat(ideal.precio || 0).toFixed(2);
         } else {
-            detallesProveedor = `${insumo.sucursalInicial || 'Principal'} ✨ (Ideal)`;
+            detallesProveedor = `${esc(insumo.sucursalInicial) || 'Principal'} ✨ (Ideal)`;
         }
         const fila = document.createElement("tr");
         fila.innerHTML = `
@@ -81,7 +80,7 @@ async function renderizarInsumosReales(listaFiltrada = null) {
             <td style="padding: 14px 16px;">$${precioBaseDisplay}</td>
             <td style="padding: 14px 16px;">${insumo.unidad === 'xM' ? 'Metro (xM)' : 'Unidad (xU)'}</td>
             <td style="color: #2E7D32; font-weight: 700; padding: 14px 16px;">${detallesProveedor}</td>
-            <td style="text-align: center; padding: 14px 16px; min-width: 140px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+           <td style="text-align: center; padding: 14px 16px; min-width: 140px;">
                 <button onclick="abrirBalanzaComparativa(${insumo.id})" class="row-btn" style="color: #1E88E5; background: transparent; border: none; cursor: pointer; padding: 4px;" title="Comparar Sucursales">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16V5a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2z"/><path d="M23 18H1"/><circle cx="7" cy="10" r="2"/></svg>
                 </button>
@@ -122,6 +121,7 @@ function abrirModalNuevoInsumo() {
     document.getElementById("form-real-insumo").reset();
     document.getElementById("insumo-real-id").value = "";
     document.getElementById("titulo-modal-insumo").innerText = "Nuevo Insumo Base";
+    toggleCamposRendimiento();   // reset() no dispara "change"; sincroniza los campos
     document.getElementById("modal-alta-insumo").classList.remove("hidden");
 }
 
@@ -129,73 +129,35 @@ function cerrarModalNuevoInsumo() {
     document.getElementById("modal-alta-insumo").classList.add("hidden");
 }
 
-async function guardarInsumoReal(event) {
-    event.preventDefault();
-
-    const idStr = document.getElementById("insumo-real-id").value;
-    const nombre = document.getElementById("insumo-real-nombre").value.trim();
-    const precio = parseFloat(document.getElementById("insumo-real-precio").value) || 0;
-    const unidad = document.getElementById("insumo-real-unidad").value;
-    const sucursal = document.getElementById("insumo-real-sucursal").value.trim();
-
-    // NUEVO: Capturar valores de rendimiento (si no existen o son 0, usamos 1 por defecto para no romper la división)
-    const fraccionInput = document.getElementById("insumo-real-fraccion");
-    const rendimientoInput = document.getElementById("insumo-real-rendimiento");
-    
-    const fraccion = fraccionInput ? parseFloat(fraccionInput.value) || 1 : 1;
-    const rendimiento = rendimientoInput ? parseFloat(rendimientoInput.value) || 1 : 1;
-
-    // MATEMÁTICA: Si el usuario ingresa rendimiento, calculamos el costo unitario final.
-    // Ej: (14000 * 0.5) / 6 = 1166.66
-    const precioCalculado = (precio * fraccion) / rendimiento;
-
-    let objetoInsumo;
-
-    if (idStr) {
-        // Modo modificación: rescatar el anterior para no perder la balanza de proveedores
-        const idInt = parseInt(idStr);
-        const viejo = _todosLosInsumos.find(i => i.id === idInt);
-        
-        // En modo edición actualizamos también el precio calculado según rendimiento
-        objetoInsumo = { 
-            ...viejo, 
-            nombre, 
-            unidad,
-            precioBase: precioCalculado 
-        };
-    } else {
-        // Nuevo registro base
-        objetoInsumo = {
-            nombre: nombre,
-            precioBase: precioCalculado, // Guardamos el valor unitario exacto ya procesado
-            unidad: unidad,
-            sucursalInicial: sucursal,
-            // Guardamos el precio unitario también en el histórico de la sucursal para la balanza
-            sucursales: [{ nombre: sucursal, precio: precioCalculado }] 
-        };
-    }
-
-    await guardarRegistro("insumos", objetoInsumo);
-    cerrarModalNuevoInsumo();
-    await cargarTodoElSistemaReal();
-}
-
 
 function abrirModificarInsumo(id) {
     const insumo = _todosLosInsumos.find(i => i.id === id);
     if (!insumo) return;
 
+    // El precio que se edita es el de la sucursal inicial (la que controla este formulario)
+    const suc = (insumo.sucursales || []).find(s => s.nombre === insumo.sucursalInicial);
+
+    document.getElementById("form-real-insumo").reset();
     document.getElementById("insumo-real-id").value = insumo.id;
     document.getElementById("insumo-real-nombre").value = insumo.nombre;
     document.getElementById("insumo-real-unidad").value = insumo.unidad;
-    
-    // Rellenar datos base de consulta
-    document.getElementById("insumo-real-precio").value = insumo.precioBase;
+    document.getElementById("insumo-real-precio").value = suc ? suc.precio : insumo.precioBase;
     document.getElementById("insumo-real-sucursal").value = insumo.sucursalInicial || "Principal";
 
-    document.getElementById("titulo-modal-insumo").innerText = "Modificar Nombre de Insumo";
+    const inputStock = document.getElementById("insumo-real-stock");
+    if (inputStock) inputStock.value = parseFloat(insumo.stock) || 0;
+
+    document.getElementById("titulo-modal-insumo").innerText = "Modificar Insumo";
+
+    // El precio ya está calculado: se edita tal cual, SIN fracción/rendimiento
+    // (si no, se dividiría dos veces y el formulario quedaría bloqueado por "required")
+    document.getElementById("contenedor-rendimiento").classList.add("hidden");
+    const fr = document.getElementById("insumo-real-fraccion");
+    const re = document.getElementById("insumo-real-rendimiento");
+    fr.required = false; re.required = false;
+    fr.value = ""; re.value = "";
+
     document.getElementById("modal-alta-insumo").classList.remove("hidden");
-    toggleCamposRendimiento(); // Mostrar campos de fracción y rendimiento si es necesario
 }
 
 async function ejecutarEliminarInsumo(id) {
@@ -211,11 +173,12 @@ async function abrirBalanzaComparativa(id) {
     if (!insumo) return;
 
     _idInsumoBalanzaActivo = id;
-    _sucursalesBalanzaTemporal = insumo.sucursales || [];
+    // Copia, no referencia
+    _sucursalesBalanzaTemporal = (insumo.sucursales || []).map(s => ({ ...s }));
 
     document.getElementById("balanza-insumo-id").value = id;
     document.getElementById("balanza-insumo-titulo").innerText = `Balanza de Precios: ${insumo.nombre}`;
-    
+
     renderizarTablaSucursalesBalanza();
     document.getElementById("modal-balanza-sucursales").classList.remove("hidden");
 }
@@ -233,7 +196,7 @@ function renderizarTablaSucursalesBalanza() {
     _sucursalesBalanzaTemporal.forEach((suc, index) => {
         const fila = document.createElement("tr");
         fila.innerHTML = `
-            <td style="padding: 8px 12px; font-weight:600;">${suc.nombre}</td>
+            <td style="padding: 8px 12px; font-weight:600;">${esc(suc.nombre)}</td>
             <td style="padding: 8px 12px; font-weight:700; color:#4A3E3D;">$${parseFloat(suc.precio).toFixed(2)}</td>
             <td style="padding: 8px 12px; text-align:center;">
                 <button onclick="eliminarPrecioSucursalBalanza(${index})" class="row-btn" style="color:#E53935;"><i data-lucide="x" style="width:14px; height:14px;"></i></button>
@@ -256,10 +219,14 @@ async function agregarPrecioSucursalBalanza() {
         return;
     }
 
-    _sucursalesBalanzaTemporal.push({ nombre: nombreTienda, precio: precioTienda });
-    
-    // Guardar los cambios directamente en IndexedDB de fondo
     const insumo = _todosLosInsumos.find(i => i.id === _idInsumoBalanzaActivo);
+    if (!insumo) return;
+
+    // Se convierte a la misma unidad de costo que la primera sucursal
+    // (precio por metro × fracción / rendimiento). Para insumos "xU", factor = 1.
+    const precioUnitario = precioTienda * (insumo.factor || 1);
+
+    _sucursalesBalanzaTemporal.push({ nombre: nombreTienda, precio: precioUnitario });
     insumo.sucursales = _sucursalesBalanzaTemporal;
     await guardarRegistro("insumos", insumo);
 
@@ -305,17 +272,17 @@ async function renderizarProductosReales(listaFiltrada = null) {
         const esStockCritico = stockActual <= stockMinimo;
 
         // Calcular costo de producción líquido real si tiene receta guardada
-        let costoFinal = parseFloat(prod.costoProduccionFijo) || 0;
+        const costoFinal = calcularCostoProducto(prod);
 
         const fila = document.createElement("tr");
         fila.innerHTML = `
-            <td style="font-weight: 700; color: #4A3E3D; padding: 14px 16px;">${prod.nombre}</td>
+            <td style="font-weight: 700; color: #4A3E3D; padding: 14px 16px;">${esc(prod.nombre)}</td>
             <td style="padding: 14px 16px;">$${costoFinal.toFixed(2)} ARS</td>
             <td style="color: #D81B60; font-weight: 700; padding: 14px 16px;">$${parseFloat(prod.precioVenta).toFixed(2)} ARS</td>
             <td style="padding: 14px 16px; font-weight: 600; ${esStockCritico ? 'color:#E53935; font-weight:700;' : 'color:#555555;'}">
                 ${stockActual} / <span style="font-size:12px; color:#999999;">${stockMinimo}</span>
             </td>
-        <td style="text-align: center; padding: 14px 16px; min-width: 140px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <td style="text-align: center; padding: 14px 16px; min-width: 140px;">
             <button onclick="abrirModificarProducto(${prod.id})" class="row-btn" style="color: #4A3E3D; background: transparent; border: none; cursor: pointer; padding: 4px;" title="Modificar">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             </button>
@@ -420,7 +387,6 @@ function agregarInsumoARecetaTemporal() {
     select.value = "";
 
     renderizarRecetaTemporalFormulario();
-    calcularPrecioSugeridoReal();
 }
 function renderizarRecetaTemporalFormulario() {
     const tbody = document.getElementById("tbody-receta-temporal");
@@ -430,7 +396,7 @@ function renderizarRecetaTemporalFormulario() {
     _recetaTemporalProducto.forEach((linea, index) => {
         const fila = document.createElement("tr");
         fila.innerHTML = `
-            <td style="padding: 6px 10px;">${linea.nombre}</td>
+            <td style="padding: 6px 10px;">${esc(linea.nombre)}</td>
             <td style="padding: 6px 10px; text-align: center;">${linea.cantidad}</td>
             <td style="padding: 6px 10px; text-align: right; font-weight:700;">$${linea.costoParcial.toFixed(2)}</td>
             <td style="padding: 6px 10px; text-align: center;">
@@ -453,7 +419,6 @@ function renderizarRecetaTemporalFormulario() {
 function eliminarLineaRecetaTemporal(index) {
     _recetaTemporalProducto.splice(index, 1);
     renderizarRecetaTemporalFormulario();
-    calcularPrecioSugeridoReal();
 }
 
 function calcularPrecioSugeridoReal() {
@@ -546,23 +511,26 @@ async function guardarProductoReal(event) {
     const minimo = parseInt(document.getElementById("prod-real-minimo").value) || 0;
     const usaInfoAdicional = document.getElementById("chk-info-adicional").checked;
 
-    const costoTotalReceta = _recetaTemporalProducto.reduce((sum, linea) => sum + linea.costoParcial, 0);
+    const inputMano = document.getElementById("prod-real-mano-obra");
+    const manoObra = usaInfoAdicional ? (parseFloat(inputMano?.value) || 0) : 0;
+    const costoInsumos = usaInfoAdicional
+        ? _recetaTemporalProducto.reduce((sum, l) => sum + l.costoParcial, 0)
+        : 0;
 
     const objetoProducto = {
-        nombre: nombre,
-        precioVenta: precioVenta,
-        stock: stock,
-        minimo: minimo,
+        nombre,
+        precioVenta,
+        stock,
+        minimo,
         usaReceta: usaInfoAdicional,
-        receta: usaInfoAdicional ? _recetaTemporalProducto : [],
-        costoProduccionFijo: usaInfoAdicional ? costoTotalReceta : 0,
+        receta: usaInfoAdicional ? structuredClone(_recetaTemporalProducto) : [],
+        manoObra,
+        costoProduccionFijo: costoInsumos + manoObra,   // insumos + mano de obra
         margenGuardado: parseFloat(document.getElementById("prod-real-margen").value) || 0,
         tipoMargenGuardado: document.getElementById("prod-real-tipo-margen").value
     };
 
-    if (idStr) {
-        objetoProducto.id = parseInt(idStr);
-    }
+    if (idStr) objetoProducto.id = parseInt(idStr);
 
     await guardarRegistro("productos", objetoProducto);
     cerrarModalNuevoProducto();
@@ -578,21 +546,19 @@ function abrirModificarProducto(id) {
     document.getElementById("prod-real-venta").value = prod.precioVenta;
     document.getElementById("prod-real-stock").value = prod.stock;
     document.getElementById("prod-real-minimo").value = prod.minimo;
-
     document.getElementById("prod-real-margen").value = prod.margenGuardado || 100;
     document.getElementById("prod-real-tipo-margen").value = prod.tipoMargenGuardado || "porcentaje";
+    document.getElementById("prod-real-mano-obra").value = prod.manoObra || "";
 
-    _recetaTemporalProducto = prod.receta || [];
-    renderizarRecetaTemporalFormulario();
+    // COPIA de la receta: si cancelas, el producto guardado no se toca
+    _recetaTemporalProducto = structuredClone(prod.receta || []);
+    renderizarRecetaTemporalFormulario();   // ya recalcula el precio sugerido
 
-    const checkbox = document.getElementById("chk-info-adicional");
-    checkbox.checked = prod.usaReceta || false;
-    
+    document.getElementById("chk-info-adicional").checked = !!prod.usaReceta;
     const seccionReceta = document.getElementById("seccion-receta-adicional");
     if (prod.usaReceta) {
         seccionReceta.classList.remove("hidden");
         cargarSelectorInsumosReceta();
-        calcularPrecioSugeridoReal();
     } else {
         seccionReceta.classList.add("hidden");
     }
@@ -687,7 +653,7 @@ function renderizarCarritoMostrador() {
         totalAcumulado += item.subtotal;
         const fila = document.createElement("tr");
         fila.innerHTML = `
-            <td style="padding: 8px 10px; font-weight:600; color:#4A3E3D;">${item.nombre} x ${item.cantidad}u</td>
+            <td style="padding: 8px 10px; font-weight:600; color:#4A3E3D;">${esc(item.nombre)} x ${item.cantidad}u</td>
             <td style="padding: 8px 10px; text-align: right; font-weight:700; color:#C55A11;">$${item.subtotal.toFixed(2)}</td>
             <td style="padding: 8px 10px; text-align: center;">
                 <!-- Botón nativo con SVG para remover este artículo específico de la lista -->
@@ -718,62 +684,75 @@ async function confirmarYRegistrarVentaConjunta() {
     const metodoPago = selectMetodo ? selectMetodo.value : "Efectivo";
     const totalTicket = _carritoMostradorTemporal.reduce((sum, item) => sum + item.subtotal, 0);
 
-    // Compilar renglón descriptivo compacto para el Historial
-    const detalleTexto = _carritoMostradorTemporal.map(i => `${i.nombre} (${i.cantidad}u)`).join(", ");
+    // 1) VALIDAR todo antes de escribir nada
+    for (const item of _carritoMostradorTemporal) {
+        const p = _todosLosProductos.find(p => p.id === item.productoId);
+        if (!p) {
+            alert(`El producto "${item.nombre}" ya no existe en el catálogo.`);
+            return;
+        }
+        const disponible = parseInt(p.stock) || 0;
+        if (item.cantidad > disponible) {
+            const seguir = confirm(
+                `Hay ${disponible} u de "${p.nombre}" en stock y estás vendiendo ${item.cantidad}.\n¿Registrar la venta igual?`
+            );
+            if (!seguir) return;
+        }
+    }
+
+    // 2) CALCULAR los cambios sobre copias (sin tocar la memoria hasta confirmar)
+    const productosMod = new Map();
+    const insumosMod = new Map();
+    const obtenerInsumo = (id) => {
+        if (!insumosMod.has(id)) {
+            const original = _todosLosInsumos.find(i => i.id === id);
+            if (original) insumosMod.set(id, { ...original });
+        }
+        return insumosMod.get(id);
+    };
+
+    const itemsTicket = [];
+    for (const item of _carritoMostradorTemporal) {
+        const p = _todosLosProductos.find(p => p.id === item.productoId);
+        productosMod.set(p.id, { ...p, stock: Math.max(0, (parseInt(p.stock) || 0) - item.cantidad) });
+
+        const consumoInsumos = [];
+        if (p.usaReceta && Array.isArray(p.receta)) {
+            for (const linea of p.receta) {
+                const ins = obtenerInsumo(linea.insumoId);
+                if (!ins) continue;                       // insumo eliminado: se ignora
+                const cant = linea.cantidad * item.cantidad;
+                // parseFloat tolera valores viejos tipo "220m"
+                ins.stock = Math.max(0, (parseFloat(ins.stock) || 0) - cant);
+                consumoInsumos.push({ insumoId: linea.insumoId, cantidad: cant });
+            }
+        }
+        itemsTicket.push({ ...item, consumoInsumos });   // para poder devolver stock al anular
+    }
 
     const nuevaVentaReal = {
         total: totalTicket,
-        metodoPago: metodoPago,
+        metodoPago,
         fecha: new Date().toISOString(),
-        detalle: detalleTexto,
-        items: _carritoMostradorTemporal,
+        detalle: _carritoMostradorTemporal.map(i => `${i.nombre} (${i.cantidad}u)`).join(", "),
+        items: itemsTicket,
         activa: true
     };
 
+    // 3) ESCRIBIR
     try {
-        // A) Descontar stock de productos finalizados y sus materias primas (insumos asociados)
-        for (const item of _carritoMostradorTemporal) {
-            // Descontar del catálogo de productos terminados
-            const prodIndex = _todosLosProductos.findIndex(p => p.id === item.productoId);
-            if (prodIndex !== -1) {
-                let p = _todosLosProductos[prodIndex];
-                p.stock = Math.max(0, (parseInt(p.stock) || 0) - item.cantidad);
-                await guardarRegistro("productos", p);
-
-                // Si el producto tiene una receta asociada, descontar insumos proporcionalmente
-                if (p.usaReceta && p.receta && p.receta.length > 0) {
-                    for (const lineaReceta of p.receta) {
-                        const insumoIndex = _todosLosInsumos.findIndex(i => i.id === lineaReceta.insumoId);
-                        if (insumoIndex !== -1) {
-                            let ins = _todosLosInsumos[insumoIndex];
-                            
-                            // Limpiamos la unidad (m, u) si existe para restar matemáticamente
-                            let valorLimpio = parseFloat(ins.stock.replace(/[^0-9.]/g, '')) || 0;
-                            let sufijo = ins.stock.replace(/[0-9.]/g, '') || "u";
-                            
-                            let nuevoStock = Math.max(0, valorLimpio - (lineaReceta.cantidad * item.cantidad));
-                            ins.stock = `${nuevoStock}${sufijo}`;
-                            await guardarRegistro("insumos", ins);
-                        }
-                    }
-                }
-            }
-        }
-
-        // B) Guardar ticket en base de datos
+        for (const p of productosMod.values()) await guardarRegistro("productos", p);
+        for (const i of insumosMod.values()) await guardarRegistro("insumos", i);
         await guardarRegistro("ventas", nuevaVentaReal);
 
-        // C) Limpiar el carrito de mostrador
         _carritoMostradorTemporal = [];
         renderizarCarritoMostrador();
-
-        // D) Refrescar masivamente los paneles en pesos argentinos
         await cargarTodoElSistemaReal();
-        alert(`🌸 ¡Venta Asentada con Éxito! Total: $${totalTicket.toFixed(2)} ARS por ${metodoPago}.`);
-
+        alert(`🌸 ¡Venta asentada con éxito! Total: $${totalTicket.toFixed(2)} ARS por ${metodoPago}.`);
     } catch (ex) {
         console.error("Error al asentar la venta de mostrador:", ex);
-        alert("Ocurrió un problema guardando el ticket.");
+        alert("Ocurrió un problema guardando el ticket. Revisa el stock antes de reintentar.");
+        await cargarTodoElSistemaReal();
     }
 }
 
@@ -829,8 +808,8 @@ async function renderizarCajaYHistorialReal() {
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="display: flex; flex-direction: column; gap: 3px;">
                     <h4 style="font-size: 14px; font-weight: 700; color: #4A3E3D;">Orden #${1000 + (venta.id || idx)}</h4>
-                    <p style="font-size: 11px; color: #777777; font-weight: 500;">Hora: ${horaStr} hs &middot; ${venta.metodoPago}</p>
-                    <p style="font-size: 12px; color: #D81B60; font-weight: 600; margin-top:2px;">${venta.detalle}</p>
+                    <p style="font-size: 11px; color: #777777; font-weight: 500;">Hora: ${horaStr} hs &middot; ${esc(venta.metodoPago)}</p>
+                    <p style="font-size: 12px; color: #D81B60; font-weight: 600; margin-top:2px;">${esc(venta.detalle)}</p>
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
                     <span style="font-size: 15px; font-weight: 700; color: #4A3E3D;">$${venta.total.toFixed(2)}</span>
@@ -882,10 +861,35 @@ function actualizarEstiloBotonesFiltroCaja() {
 }
 
 async function anularTicketReal(id) {
-    if (confirm("⚠️ ¿Deseas anular esta orden? El dinero se restará de las métricas de caja.")) {
+    if (!confirm("⚠️ ¿Deseas anular esta orden? Se devolverá el stock y el dinero se restará de la caja.")) return;
+
+    const venta = _todasLasVentas.find(v => v.id === id);
+
+    try {
+        if (venta && Array.isArray(venta.items)) {
+            for (const item of venta.items) {
+                // Devolver producto terminado
+                const p = _todosLosProductos.find(p => p.id === item.productoId);
+                if (p) {
+                    p.stock = (parseInt(p.stock) || 0) + item.cantidad;
+                    await guardarRegistro("productos", p);
+                }
+                // Devolver insumos (usa el consumo guardado en el ticket; tickets viejos no lo tienen)
+                for (const c of (item.consumoInsumos || [])) {
+                    const ins = _todosLosInsumos.find(i => i.id === c.insumoId);
+                    if (ins) {
+                        ins.stock = (parseFloat(ins.stock) || 0) + c.cantidad;
+                        await guardarRegistro("insumos", ins);
+                    }
+                }
+            }
+        }
         await eliminarRegistro("ventas", id);
-        await cargarTodoElSistemaReal();
+    } catch (ex) {
+        console.error("Error al anular el ticket:", ex);
+        alert("No se pudo anular la orden.");
     }
+    await cargarTodoElSistemaReal();
 }
 
 // ============================================================================
@@ -918,7 +922,7 @@ async function renderizarPestañaPrincipalResumen() {
                 const item = document.createElement("div");
                 item.className = "alert-item";
                 item.innerHTML = `
-                    <span>${p.nombre} &middot; Stock: ${stockAct} u</span>
+                    <span>${esc(p.nombre)} &middot; Stock: ${stockAct} u</span>
                     <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #E65100;"></i>
                 `;
                 panelAlertasInsumos.appendChild(item);
@@ -993,28 +997,20 @@ async function renderizarPestañaPrincipalResumen() {
     if (typeof cargarSelectorProductosVenta === 'function') {
         await cargarSelectorProductosVenta();
     }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     console.log("🌸 Gráfica semanal real y Dashboard sincronizados con éxito.");
 }
 // Función para mostrar u ocultar dinámicamente los campos de rendimiento en el modal
 function toggleCamposRendimiento() {
-    const unidad = document.getElementById("insumo-real-unidad").value;
+    const mostrar = document.getElementById("insumo-real-unidad").value === "xM";
     const contenedor = document.getElementById("contenedor-rendimiento");
-    const inputFraccion = document.getElementById("insumo-real-fraccion");
-    const inputRendimiento = document.getElementById("insumo-real-rendimiento");
+    const fr = document.getElementById("insumo-real-fraccion");
+    const re = document.getElementById("insumo-real-rendimiento");
 
-    if (unidad === "xM") {
-        contenedor.classList.remove("hidden");
-        // Hacemos requeridos estos campos solo si se calcula por metro
-        inputFraccion.required = true;
-        inputRendimiento.required = true;
-    } else {
-        contenedor.classList.add("hidden");
-        inputFraccion.required = false;
-        inputRendimiento.required = false;
-        // Limpiamos los valores si cambia a unidad común
-        inputFraccion.value = "";
-        inputRendimiento.value = "";
-    }
+    contenedor.classList.toggle("hidden", !mostrar);
+    fr.required = mostrar;
+    re.required = mostrar;
+    if (!mostrar) { fr.value = ""; re.value = ""; }
 }
 
 // Función principal modificada para realizar el cálculo matemático antes de persistir los datos
@@ -1027,46 +1023,79 @@ async function guardarInsumoReal(event) {
     const unidad = document.getElementById("insumo-real-unidad").value;
     const sucursal = document.getElementById("insumo-real-sucursal").value.trim();
 
-    // Capturamos los nuevos inputs de cálculo matemático por rendimiento
-    const fraccionVal = parseFloat(document.getElementById("insumo-real-fraccion").value);
-    const rendimientoVal = parseFloat(document.getElementById("insumo-real-rendimiento").value);
+    const inputStock = document.getElementById("insumo-real-stock");
+    const stock = inputStock ? Math.max(0, parseFloat(inputStock.value) || 0) : null;
 
-    // LÓGICA MATEMÁTICA: Si la unidad es por Metro ("xM"), dividimos el costo de la fracción por la cantidad que rinde.
-    // Ej de Gabardina: (14000 * 0.5) / 6 = 1166.666...
-    // Si es "xU", se obvia y el multiplicador es 1 por defecto.
-    let precioCalculado = precio;
-    if (unidad === "xM" && !isNaN(fraccionVal) && !isNaN(rendimientoVal) && rendimientoVal > 0) {
-        precioCalculado = (precio * fraccionVal) / rendimientoVal;
-    }
+    // Costo por rendimiento: (precio × fracción) / rendimiento. Solo para "por metro".
+    const fraccion = parseFloat(document.getElementById("insumo-real-fraccion").value);
+    const rendimiento = parseFloat(document.getElementById("insumo-real-rendimiento").value);
+    const usaRendimiento = unidad === "xM" && fraccion > 0 && rendimiento > 0;
+
+    const factorNuevo = usaRendimiento ? fraccion / rendimiento : null;
+    const precioCalculado = usaRendimiento ? precio * factorNuevo : precio;
 
     let objetoInsumo;
 
     if (idStr) {
-        // Modo modificación: rescatar el anterior para no perder la balanza de proveedores
-        const idInt = parseInt(idStr);
-        const viejo = _todosLosInsumos.find(i => i.id === idInt);
-        objetoInsumo = { 
-            ...viejo, 
-            nombre, 
+        const viejo = _todosLosInsumos.find(i => i.id === parseInt(idStr));
+        if (!viejo) { alert("El insumo ya no existe."); return; }
+
+        // Actualizar también la sucursal inicial: la tabla muestra el precio de la balanza
+        const sucursales = (viejo.sucursales || []).map(s => ({ ...s }));
+        const idx = sucursales.findIndex(s => s.nombre === viejo.sucursalInicial);
+        if (idx >= 0) sucursales[idx] = { nombre: sucursal, precio: precioCalculado };
+        else sucursales.unshift({ nombre: sucursal, precio: precioCalculado });
+
+        objetoInsumo = {
+            ...viejo,
+            nombre,
             unidad,
-            precioBase: precioCalculado // Actualiza el precio base recalculado por rendimiento
+            precioBase: precioCalculado,
+            sucursalInicial: sucursal,
+            sucursales,
+            factor: factorNuevo ?? viejo.factor ?? 1,
+            stock: stock ?? (parseFloat(viejo.stock) || 0)
         };
     } else {
-        // Nuevo registro base
         objetoInsumo = {
-            nombre: nombre,
-            precioBase: precioCalculado, // Guardamos la unidad de costo final limpia de forma formateada ($)
-            unidad: unidad,
+            nombre,
+            precioBase: precioCalculado,
+            unidad,
             sucursalInicial: sucursal,
-            sucursales: [{ nombre: sucursal, precio: precioCalculado }] // Primera sucursal de la balanza con precio unitario
+            sucursales: [{ nombre: sucursal, precio: precioCalculado }],
+            factor: factorNuevo ?? 1,   // se reutiliza para cotizaciones nuevas en la balanza
+            stock: stock ?? 0           // número, ya no texto ("220m")
         };
     }
 
     await guardarRegistro("insumos", objetoInsumo);
-    
-    // Resetear visualmente el modal al cerrar para la próxima apertura limpia
+
     document.getElementById("contenedor-rendimiento").classList.add("hidden");
-    
     cerrarModalNuevoInsumo();
     await cargarTodoElSistemaReal();
+}
+
+function esc(texto) {
+    return String(texto ?? "").replace(/[&<>"']/g, c => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+    ));
+}
+
+function calcularCostoProducto(prod) {
+    if (!prod.usaReceta || !Array.isArray(prod.receta)) {
+        return parseFloat(prod.costoProduccionFijo) || 0;
+    }
+    const costoInsumos = prod.receta.reduce((suma, linea) => {
+        const ins = _todosLosInsumos.find(i => i.id === linea.insumoId);
+        const precio = ins ? precioIdealInsumo(ins) : (parseFloat(linea.precioUnitario) || 0);
+        return suma + precio * (parseFloat(linea.cantidad) || 0);
+    }, 0);
+    return costoInsumos + (parseFloat(prod.manoObra) || 0);
+}
+
+function precioIdealInsumo(insumo) {
+    if (insumo.sucursales && insumo.sucursales.length > 0) {
+        return Math.min(...insumo.sucursales.map(s => parseFloat(s.precio) || 0));
+    }
+    return parseFloat(insumo.precioBase) || 0;
 }

@@ -1,9 +1,10 @@
 // ====== BRAZO OFFLINE: SERVICE WORKER PARA GESTIÓN SIN INTERNET ======
 
-const CACHE_NAME = "LetyAccesoriosCache-v5";
+// IMPORTANTE: subir este número cada vez que cambies index.html, app.js o db.js
+const CACHE_NAME = "LetyAccesoriosCache-v6";
 
-
-// Listado de archivos esenciales que el teléfono memorizará de forma local
+// Solo archivos propios. Si uno falla, falla la instalación completa (addAll es atómico),
+// por eso NO van URLs externas ni archivos que no existan.
 const ASSETS_TO_CACHE = [
     "./",
     "./index.html",
@@ -11,55 +12,63 @@ const ASSETS_TO_CACHE = [
     "./js/db.js",
     "./js/app.js",
     "./js/lucide.min.js",
-    "./logo.png",
-    // Librerías externas cacheadas automáticamente por seguridad móvil
-    "https://tailwindcss.com",
-    "https://unpkg.com",
-    "https://googleapis.com"
+    "./logo.png"
 ];
 
-// 1. Evento de instalación: Se dispara la primera vez que se abre la app
+// 1. Instalación: guarda los archivos esenciales
 self.addEventListener("install", (event) => {
-    console.log(" Memoria Offline: Instalando Service Worker...");
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            console.log(" Memoria Offline: Guardando pantallas y scripts en el dispositivo...");
-            return cache.addAll(ASSETS_TO_CACHE);
-        }).then(() => {
-            // Forzar a que el Service Worker se active de inmediato sin esperar
-            return self.skipWaiting();
-        })
-    );
-});
-// 2. Evento de activación: Limpia cualquier versión vieja de caché en el dispositivo
-self.addEventListener("activate", (event) => {
-    console.log(" Memoria Offline: Service Worker Activo.");
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cache) => {
-                    if (cache !== CACHE_NAME) {
-                        console.log(" Memoria Offline: Eliminando caché antiguo...", cache);
-                        return caches.delete(cache);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
+        caches.open(CACHE_NAME)
+            // cache: "reload" evita que el navegador entregue copias viejas de su caché HTTP
+            .then((cache) => cache.addAll(ASSETS_TO_CACHE.map((url) => new Request(url, { cache: "reload" }))))
+            .then(() => self.skipWaiting())
     );
 });
 
-// 3. Evento Fetch: Intercepta las solicitudes y sirve los archivos desde el almacenamiento local
+// 2. Activación: borra cachés de versiones anteriores
+self.addEventListener("activate", (event) => {
+    event.waitUntil(
+        caches.keys()
+            .then((nombres) => Promise.all(
+                nombres.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n))
+            ))
+            .then(() => self.clients.claim())
+    );
+});
+
+// 3. Fetch: archivos propios y fuentes de Google. Devuelve lo guardado y lo actualiza en segundo plano
 self.addEventListener("fetch", (event) => {
+    if (event.request.method !== "GET") return;
+
+    const url = new URL(event.request.url);
+    const esMismoOrigen = url.origin === self.location.origin;
+    const esFuente = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
+    if (!esMismoOrigen && !esFuente) return;   // cualquier otra cosa sale directo a la red
+
     event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            // Si el archivo está en la memoria del teléfono, lo devuelve de inmediato
-            if (cachedResponse) {
-                return cachedResponse;
+        caches.open(CACHE_NAME).then(async (cache) => {
+            const guardado = await cache.match(event.request);
+
+            const desdeRed = fetch(event.request)
+                .then((resp) => {
+                    if (resp && (resp.ok || resp.type === "opaque")) {
+                        cache.put(event.request, resp.clone());
+                    }
+                    return resp;
+                })
+                .catch(() => null);
+
+            if (guardado) {
+                event.waitUntil(desdeRed);   // refresca la copia sin hacer esperar a la persona
+                return guardado;
             }
-            // Si no está (como una petición nueva), intenta ir a buscarlo a internet
-            return fetch(event.request).catch(() => {
-                console.warn(" Solicitud fallida y sin caché disponible para:", event.request.url);
-            });
+
+            const resp = await desdeRed;
+            if (resp) return resp;
+
+            // Sin red y sin copia guardada
+            if (event.request.mode === "navigate") return cache.match("./index.html");
+            return new Response("", { status: 503, statusText: "Sin conexión" });
         })
     );
 });

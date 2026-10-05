@@ -46,12 +46,12 @@ function inicializarDB() {
 function guardarRegistro(storeName, objeto) {
     return new Promise((resolve, reject) => {
         if (!db) return reject("Base de datos no inicializada.");
-        const transaction = db.transaction([storeName], "readwrite");
-        const store = transaction.objectStore(storeName);
-        const request = store.put(objeto);
+        const tx = db.transaction([storeName], "readwrite");
+        const request = tx.objectStore(storeName).put(objeto);
 
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = (e) => reject(e.target.error);
+        tx.oncomplete = () => resolve(request.result);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
     });
 }
 
@@ -72,15 +72,16 @@ function obtenerTodosLosRegistros(storeName) {
 function eliminarRegistro(storeName, id) {
     return new Promise((resolve, reject) => {
         if (!db) return reject("Base de datos no inicializada.");
-        const transaction = db.transaction([storeName], "readwrite");
-        const store = transaction.objectStore(storeName);
-        const request = store.delete(id);
+        const tx = db.transaction([storeName], "readwrite");
+        tx.objectStore(storeName).delete(id);
 
-        request.onsuccess = () => resolve(true);
-        request.onerror = (e) => reject(e.target.error);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
     });
 }
 
-// Inicializar el motor real al cargar el script en el navegador
-inicializarDB().catch(err => console.error("Error al iniciar base de datos real:", err));
+// Promesa global: app.js espera a que la base esté abierta antes de leer datos
+const dbListo = inicializarDB();
+dbListo.catch(err => console.error("Error al iniciar base de datos real:", err));
 
