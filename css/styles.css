@@ -1,0 +1,469 @@
+/*
+  ==========================================================================
+     Lety Accesorios - Sistema de Gestión de Stock
+     Estilos Globales y Diseño Responsive
+
+  ==========================================================================
+  */
+
+  :root {
+      --primary-color: #D81B60;
+      --primary-light: #FCE4EC;
+      --primary-border: #F48FB1;
+      --accent-blue: #1E88E5;
+      --accent-blue-light: #E3F2FD;
+      --accent-blue-border: #BBDEFB;
+      --accent-orange: #EF6C00;
+      --accent-orange-light: #FFF3E0;
+      --accent-orange-border: #FFE0B2;
+      --bg-main: #FFF5F7;
+      --text-main: #4A3E3D;
+      --text-muted: #8A7A78;
+      --white: #FFFFFF;
+      --shadow: 0 2px 6px rgba(0,0,0,0.08);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+  }
+
+  * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+  }
+
+  body {
+      font-family: 'Quicksand', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      flex-direction: row;
+  }
+
+  /*
+  ==========================================================================
+     SIDEBAR (Escritorio)
+
+  ==========================================================================
+  */
+  .sidebar {
+      width: 260px;
+      background-color: var(--primary-light);
+      border-right: 1px solid var(--primary-border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+  }
+
+  .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 24px;
+      gap: 8px;
+  }
+
+  .logo-circle {
+      background-color: var(--white);
+      padding: 4px;
+      border-radius: 50%;
+      box-shadow: var(--shadow);
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+  }
+
+  .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+  }
+
+  .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+      text-align: left;
+      width: 100%;
+      transition: all 0.2s;
+  }
+
+  .nav-btn:hover {
+      background-color: rgba(255,255,255,0.4);
+  }
+
+  .nav-btn.active {
+      background-color: var(--white);
+      color: var(--primary-color);
+      border: 1px solid var(--primary-border);
+      box-shadow: var(--shadow-sm);
+  }
+
+  /*
+  ==========================================================================
+     CONTENIDO PRINCIPAL
+
+  ==========================================================================
+  */
+  main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+  }
+
+  .hidden {
+      display: none !important;
+  }
+
+  /* Layout Utilities */
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit,
+  minmax(280px, 1fr)); gap: 16px; width: 100%; }
+  .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 24px;
+  width: 100%; }
+
+  /* Card Components */
+  .card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      border: 1px solid #EBEBEB;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+  }
+
+  .card-blue {
+      background-color: var(--accent-blue-light);
+      border: 1px solid var(--accent-blue-border);
+      justify-content: space-between;
+      flex-direction: row;
+      align-items: center;
+  }
+
+  .card-orange {
+      background-color: var(--accent-orange-light);
+      border: 1px solid var(--accent-orange-border);
+  }
+
+  .alert-pill {
+      background-color: #FFEBEE;
+      border: 1px solid #FFCDD2;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      text-align: center;
+  }
+
+  /* Dashboard Charts */
+  .chart-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 180px;
+      padding-top: 20px;
+      position: relative;
+      width: 100%;
+  }
+
+  .chart-line-bg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      opacity: 0.1;
+  }
+
+  .chart-line-bg div { border-bottom: 1px solid var(--text-main); width:
+  100%; }
+
+  .chart-bar-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      z-index: 10;
+      width: 100%;
+  }
+
+  .chart-bar {
+      width: 14px;
+      background-color: var(--primary-border);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s;
+  }
+
+  .chart-bar.highlight { background-color: var(--primary-color); }
+
+  .alert-item {
+      background-color: var(--accent-orange-light);
+      border: 1px solid var(--accent-orange-border);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #A04000;
+  }
+
+  /*
+  ==========================================================================
+     TABLAS ESTILO EXCEL
+
+  ==========================================================================
+  */
+  .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background-color: rgba(255,255,255,0.6);
+      padding: 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid #EBEBEB;
+      width: 100%;
+  }
+
+  .search-box {
+      background: var(--white);
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 10px;
+      border: 1px solid #E2E8F0;
+      outline: none;
+      width: 100%;
+      max-width: 240px;
+      font-family: 'Quicksand', sans-serif;
+      transition: border-color 0.2s;
+  }
+
+  .search-box:focus { border-color: var(--primary-border); }
+
+  .btn-action-pastel {
+      background-color: #FCE4C8;
+      border: none;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #000000;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+      transition: background-color 0.2s;
+      font-family: 'Quicksand', sans-serif;
+  }
+
+  .btn-action-pastel:hover { background-color: #FADBB6; }
+
+  .table-container {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid #EBEBEB;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      width: 100%;
+  }
+
+  .responsive-table-wrapper { width: 100%; overflow-x: auto; }
+
+  .excel-table { width: 100%; border-collapse: collapse; text-align: left;
+  font-size: 14px; }
+  .excel-table th { background-color: #FCECE3; color: var(--text-main);
+  font-weight: 700; padding: 12px 16px; border-bottom: 1px solid #EBEBEB;
+  white-space: nowrap; }
+  .excel-table td { padding: 14px 16px; border-bottom: 1px solid #FAFAFA;
+  color: #555555; font-weight: 500; }
+  .excel-table tr:hover td { background-color: var(--bg-main); }
+
+  .row-btn { border: none; cursor: pointer; padding: 6px; border-radius:
+  var(--radius-sm); background: transparent; transition: background-color
+  0.2s; display: inline-flex; align-items: center; justify-content: center; }
+  .row-btn-edit { color: var(--accent-blue); }
+  .row-btn-edit:hover { background-color: var(--accent-blue-light); }
+  .row-btn-delete { color: #E53935; }
+  .row-btn-delete:hover { background-color: #FFEBEE; }
+
+  /*
+  ==========================================================================
+     VENTAS Y CAJA
+
+  ==========================================================================
+  */
+  .split-box { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px;
+  width: 100%; align-items: start; }
+  .order-card { background: var(--white); padding: 16px; border-radius:
+  var(--radius-lg); border: 1px solid #EBEBEB; display: flex; flex-direction:
+  column; gap: 12px; }
+  .badge-green { background-color: #E2F0D9; color: #2E7D32; font-size: 11px;
+  font-weight: 700; padding: 4px 10px; border-radius: 9999px; border: 1px
+  solid #C5E1A5; width: fit-content; }
+  .badge-orange { background-color: var(--accent-orange-light); color:
+  #A04000; font-size: 11px; font-weight: 700; padding: 4px 10px;
+  border-radius: 9999px; border: 1px solid var(--accent-orange-border);
+  width: fit-content; }
+
+  .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; width: 100%; text-align: center; }
+  .analytics-cell { background-color: #FFF3EB; border: 1px solid
+  rgba(254,228,200,0.4); padding: 10px; border-radius: var(--radius-md);
+  display: flex; flex-direction: column; gap: 2px; }
+
+  /* Forms and Modals */
+  .form-select, .form-input {
+      width: 100%;
+      background-color: rgba(255,245,247,0.4);
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: 1px solid #E2E8F0;
+      outline: none;
+      font-family: 'Quicksand', sans-serif;
+      transition: border-color 0.2s;
+      color: var(--text-main);
+  }
+  .form-select:focus, .form-input:focus { border-color:
+  var(--primary-border); }
+
+  .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+  }
+
+  .modal-card {
+      background: var(--white);
+      max-width: 440px;
+      border-radius: 20px;
+      border: 1px solid #EBEBEB;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+  }
+
+  /*
+  ==========================================================================
+     📱 RESPONSIVE DESIGN (MOBILE FIRST IMPROVEMENTS)
+
+  ==========================================================================
+  */
+  @media (max-width: 768px) {
+      body {
+          flex-direction: column;
+      }
+
+      /* Sidebar transforms into a Bottom Navigation Bar */
+      .sidebar {
+          width: 100%;
+          height: 70px;
+          padding: 0 10px;
+          border-right: none;
+          border-top: 1px solid var(--primary-border);
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          z-index: 50;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          background-color: var(--white);
+          box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      }
+
+      .logo-container, .sidebar div:last-child {
+          display: none;
+      }
+
+      .nav-menu {
+          flex-direction: row;
+          justify-content: space-around;
+          gap: 4px;
+          width: 100%;
+      }
+
+      .nav-btn {
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          font-size: 10px;
+          padding: 8px 4px;
+          text-align: center;
+          background: transparent;
+          color: var(--text-muted);
+          box-shadow: none;
+          border: none;
+      }
+
+      .nav-btn.active {
+          background-color: transparent;
+          color: var(--primary-color);
+          border: none;
+          box-shadow: none;
+          font-weight: 700;
+      }
+
+      .nav-btn.active svg {
+          color: var(--primary-color);
+          transform: scale(1.1);
+      }
+
+      main {
+          padding: 16px;
+          padding-bottom: 90px; /* Espacio para la nav bar inferior */
+      }
+
+      .grid-3, .grid-2-1, .split-box {
+          grid-template-columns: 1fr !important;
+          gap: 16px;
+      }
+
+      .card-blue {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+      }
+
+      .alert-pill {
+          width: 100%;
+      }
+  }
