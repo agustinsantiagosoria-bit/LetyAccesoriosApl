@@ -1,0 +1,1130 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lety Accesorios - Gestión de Stock</title>
+
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Estilos locales -->
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+
+    <!-- ====== MENÚ DE NAVEGACIÓN ====== -->
+    <div class="sidebar">
+        <div class="logo-container">
+            <div class="logo-circle">
+                <span aria-label="Lety Accesorios"
+                    style="display:flex; width:100%; height:100%; align-items:center; justify-content:center; font-size:28px; font-weight:700; color:#D81B60;">
+                    L
+                </span>
+            </div>
+
+            <div>
+                <h1 style="font-size:20px; font-weight:700; color:#4A3E3D; line-height:1.2;">Lety</h1>
+                <p style="font-size:10px; font-weight:700; color:#8A7A78; letter-spacing:1px; text-transform:uppercase;">Accesorios</p>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+
+            <button onclick="cambiarPestaña('resumen')" id="btn-resumen" class="nav-btn active">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:2px;">
+                    <rect width="7" height="9" x="3" y="3" rx="1"/>
+                    <rect width="7" height="5" x="14" y="3" rx="1"/>
+                    <rect width="7" height="9" x="14" y="10" rx="1"/>
+                    <rect width="7" height="5" x="3" y="14" rx="1"/>
+                </svg>
+                <span>Resumen</span>
+            </button>
+
+            <button onclick="cambiarPestaña('insumos')" id="btn-insumos" class="nav-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:2px;">
+                    <path d="M16.5 9.4 7.55 4.24a1.79 1.79 0 0 0-1.8 0l-4.3 2.5a1.78 1.78 0 0 0 0 3.1l8.9 5.15a1.8 1.8 0 0 0 1.8 0l8.9-5.15a1.78 1.78 0 0 0 0-3.1Z"/>
+                    <path d="M3.23 10.15V19a2 2 0 0 0 1 1.73l6.5 3.75a2 2 0 0 0 2 0l6.5-3.75a2 2 0 0 0 1-1.73v-8.85"/>
+                </svg>
+                <span>Insumos</span>
+            </button>
+
+            <button onclick="cambiarPestaña('productos')" id="btn-productos" class="nav-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:2px;">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/>
+                </svg>
+                <span>Productos</span>
+            </button>
+
+            <button onclick="cambiarPestaña('ventas')" id="btn-ventas" class="nav-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:2px;">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                <span>Ventas</span>
+            </button>
+
+            <button onclick="exportarDatos()" class="nav-btn">
+                <i data-lucide="download" style="width:18px; height:18px;"></i>
+                <span>Backup Datos</span>
+            </button>
+
+            <button onclick="importarDatos()" class="nav-btn">
+                <i data-lucide="upload" style="width:18px; height:18px;"></i>
+                <span>Restaurar Backup</span>
+            </button>
+
+        </nav>
+
+        <div style="text-align:center; font-size:10px; color:#8A7A78; font-weight:500; border-top:1px solid rgba(244,143,177,0.3); padding-top:10px;">
+            Almacenamiento Local
+        </div>
+    </div>
+
+    <!-- ====== CONTENEDOR CENTRAL ====== -->
+    <main>
+
+        <!-- ============================================================ -->
+        <!-- PESTAÑA 1: RESUMEN GENERAL -->
+        <!-- ============================================================ -->
+
+        <div id="pestaña-resumen" style="display:flex; flex-direction:column; gap:24px; width:100%;">
+
+            <div class="grid-3">
+
+                <!-- Tarjeta Insumos -->
+                <div class="card card-blue">
+                    <div>
+                        <p style="font-size:11px; font-weight:700; color:#1E88E5; text-transform:uppercase; letter-spacing:1px;">
+                            Items en Stock (insumos)
+                        </p>
+
+                        <h3 id="dash-total-insumos" style="font-size:32px; font-weight:700; color:#1565C0; margin-top:4px;">235</h3>
+
+                        <p style="font-size:11px; color:#777777; margin-top:2px;">items total</p>
+                    </div>
+
+                    <div class="alert-pill">
+                        <span id="dash-alertas-insumos-count" style="font-size:18px; font-weight:700; color:#C62828; display:block; line-height:1;">5</span>
+                        <span style="font-size:9px; font-weight:700; color:#C62828; text-transform:uppercase;">Alertas</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Productos y Pedidos -->
+                <div class="card" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:20px;">
+                    <div style="border-right:1px solid #EBEBEB; padding-right:10px;">
+                        <p style="font-size:10px; font-weight:700; color:#8A7A78; text-transform:uppercase;">Productos</p>
+                        <h3 id="dash-total-productos" style="font-size:24px; font-weight:700; color:#4A3E3D; margin-top:4px;">78</h3>
+                        <p style="font-size:10px; color:#999999;">creados</p>
+                    </div>
+
+                    <div style="padding-left:10px;">
+                        <p style="font-size:10px; font-weight:700; color:#8A7A78; text-transform:uppercase;">Pedidos Activos</p>
+                        <h3 id="dash-pedidos-activos" style="font-size:24px; font-weight:700; color:#4A3E3D; margin-top:4px;">12</h3>
+                        <p style="font-size:10px; color:#A04000; font-weight:600;">en proceso</p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Caja Hoy -->
+                <div class="card card-orange">
+                    <p style="font-size:11px; font-weight:700; color:#E65100; text-transform:uppercase;">Ventas de Hoy</p>
+                    <h3 id="dash-ventas-hoy" style="font-size:32px; font-weight:700; color:#EF6C00; margin-top:4px;">$450</h3>
+                    <p style="font-size:11px; color:#8A7A78; margin-top:2px;">caja diaria activa</p>
+                </div>
+
+            </div>
+
+            <!-- Gráfico y Alertas -->
+            <div class="grid-2-1">
+
+                <div class="card">
+                    <h4 style="font-size:14px; font-weight:700; color:#4A3E3D;">Mi Semana en Ventas</h4>
+
+                    <div class="chart-container">
+                        <div class="chart-line-bg">
+                            <div></div><div></div><div></div><div></div>
+                        </div>
+
+                        <div class="chart-bar-wrapper">
+                            <span style="font-size:10px; font-weight:700; color:#777777;">25</span>
+                            <div class="chart-bar" style="height:50px;"></div>
+                            <span style="font-size:10px; color:#999999;">Lu 25</span>
+                        </div>
+
+                        <div class="chart-bar-wrapper">
+                            <span style="font-size:10px; font-weight:700; color:#777777;">32</span>
+                            <div class="chart-bar" style="height:64px;"></div>
+                            <span style="font-size:10px; color:#999999;">Se 32</span>
+                        </div>
+
+                        <div class="chart-bar-wrapper">
+                            <span style="font-size:10px; font-weight:700; color:#777777;">41</span>
+                            <div class="chart-bar highlight" style="height:82px;"></div>
+                            <span style="font-size:10px; color:#999999;">Me 41</span>
+                        </div>
+
+                        <div class="chart-bar-wrapper">
+                            <span style="font-size:10px; font-weight:700; color:#777777;">28</span>
+                            <div class="chart-bar" style="height:56px;"></div>
+                            <span style="font-size:10px; color:#999999;">Ju 28</span>
+                        </div>
+
+                        <div class="chart-bar-wrapper">
+                            <span style="font-size:10px; font-weight:700; color:#777777;">45</span>
+                            <div class="chart-bar highlight" style="height:90px;"></div>
+                            <span style="font-size:10px; color:#999999;">V 45</span>
+                        </div>
+
+                        <div class="chart-bar-wrapper">
+                            <span style="font-size:10px; font-weight:700; color:#777777;">35</span>
+                            <div class="chart-bar" style="height:70px;"></div>
+                            <span style="font-size:10px; color:#999999;">Sa 35</span>
+                        </div>
+
+                        <div class="chart-bar-wrapper">
+                            <span style="font-size:10px; font-weight:700; color:#777777;">30</span>
+                            <div class="chart-bar" style="height:60px;"></div>
+                            <span style="font-size:10px; color:#999999;">Su 30</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alertas -->
+                <div class="card" style="gap:12px;">
+                    <h4 style="font-size:14px; font-weight:700; color:#C62828;">Alertas de Insumos</h4>
+
+                    <div id="lista-alertas-insumos" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:160px;">
+                        <div class="alert-item">
+                            <span>Cordón Elástico Rosa &middot; 2m</span>
+                            <i data-lucide="alert-triangle" style="width:16px; height:16px; color:#E65100;"></i>
+                        </div>
+
+                        <div class="alert-item">
+                            <span>Arguilas Oro &middot; 10u</span>
+                            <i data-lucide="alert-triangle" style="width:16px; height:16px; color:#E65100;"></i>
+                        </div>
+
+                        <div class="alert-item">
+                            <span>Argollas Oro &middot; 10u</span>
+                            <i data-lucide="alert-triangle" style="width:16px; height:16px; color:#E65100;"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- PESTAÑA 2: GESTIÓN DE INSUMOS -->
+        <!-- ============================================================ -->
+
+        <div id="pestaña-insumos" style="display:flex; flex-direction:column; gap:16px; width:100%;" class="hidden">
+
+            <div class="table-toolbar">
+                <h2 style="font-size:16px; font-weight:700; color:#4A3E3D;">
+                    Insumos / Inventario - Real 🧵
+                </h2>
+
+                <div style="display:flex; align-items:center; gap:12px; justify-content:flex-end; width:100%;">
+                    <input type="text"
+                        id="filtro-insumos-input"
+                        oninput="filtrarInsumosReales()"
+                        placeholder="🔍 Buscar insumo en tiempo real..."
+                        class="search-box"
+                        style="max-width:280px;" />
+
+                    <button onclick="abrirModalNuevoInsumo()" class="btn-action-pastel">
+                        <i data-lucide="plus" style="width:16px; height:16px;"></i>
+                        <span>+ Insumo</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="responsive-table-wrapper">
+                    <table class="excel-table">
+
+<thead>
+    <tr>
+        <th style="padding:12px 16px;">Nombre del insumo</th>
+        <th style="padding:12px 16px;">Costo por unidad base</th>
+        <th style="padding:12px 16px;">Unidad base</th>
+        <th style="padding:12px 16px;">Rendimiento / costo por pieza</th>
+        <th style="padding:12px 16px;">Comercio / Stock</th>
+        <th style="text-align:center; width:190px; padding:12px 16px;">Acciones</th>
+    </tr>
+</thead>
+
+
+                        <tbody id="tbody-insumos-reales" class="divide-y">
+                            <!-- Filas generadas por app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: CREAR / MODIFICAR INSUMO -->
+        <!-- ============================================================ -->
+
+        <div id="modal-alta-insumo" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width:480px;">
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h3 id="titulo-modal-insumo" style="font-size:18px; font-weight:700; color:#4A3E3D;">
+                        Nuevo Insumo Base
+                    </h3>
+
+                    <button type="button" onclick="cerrarModalNuevoInsumo()"
+                        style="background:none; border:none; font-size:22px; cursor:pointer; color:#8A7A78;">
+                        &times;
+                    </button>
+                </div>
+
+                <form id="form-real-insumo" onsubmit="guardarInsumoReal(event)"
+                    style="display:flex; flex-direction:column; gap:12px;">
+
+                    <input type="hidden" id="insumo-real-id">
+
+                    <div>
+                        <label for="insumo-real-nombre" class="form-label">Nombre del insumo</label>
+                        <input type="text" id="insumo-real-nombre" class="form-input"
+                            placeholder="Ej. Cinta de raso" required>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label for="insumo-real-unidad-base" class="form-label">Unidad base (recetas y stock)</label>
+
+<select id="insumo-real-unidad-base"
+    class="form-select"
+    onchange="toggleCamposRendimiento()"
+    required>
+
+    <option value="cm">Centímetros (CM)</option>
+    <option value="m">Metros (M)</option>
+    <option value="mm">Milímetros (MM)</option>
+    <option value="g">Gramos (G)</option>
+    <option value="kg">Kilogramos (KG)</option>
+    <option value="ml">Mililitros (ML)</option>
+    <option value="l">Litros (L)</option>
+    <option value="u">Unidades (U)</option>
+</select>
+
+                        </div>
+                        <div>
+                            <label for="insumo-real-unidad-compra" class="form-label">Unidad de compra</label>
+
+<select id="insumo-real-unidad-compra"
+    class="form-select"
+    onchange="toggleCamposRendimiento()"
+    required>
+
+    <option value="m">Metro (M)</option>
+    <option value="cm">Centímetro (CM)</option>
+    <option value="mm">Milímetro (MM)</option>
+    <option value="kg">Kilogramo (KG)</option>
+    <option value="g">Gramo (G)</option>
+    <option value="l">Litro (L)</option>
+    <option value="ml">Mililitro (ML)</option>
+    <option value="u">Unidad (U)</option>
+</select>
+
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label for="insumo-real-cantidad-presentacion" class="form-label">Cantidad por presentación</label>
+                            <input type="number" id="insumo-real-cantidad-presentacion" class="form-input" min="0.0001" step="0.0001" value="1" required>
+                        </div>
+                        <div>
+                            <label for="insumo-real-precio" class="form-label">Precio de compra ($)</label>
+                            <input type="number" id="insumo-real-precio" class="form-input" min="0" step="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="insumo-real-sucursal" class="form-label">Distribuidora / Comercio</label>
+                        <input type="text" id="insumo-real-sucursal" class="form-input" placeholder="Ej. Distribuidora Central" required>
+                    </div>
+
+                    <div>
+                        <label for="insumo-real-stock" class="form-label">Stock actual (en unidad base)</label>
+                        <input type="number" id="insumo-real-stock" class="form-input" min="0" step="0.01" placeholder="Ej. 2500">
+                    </div>
+
+                    <div id="contenedor-rendimiento" style="background:#FFF5F7;border:1px solid #F8BBD0;padding:12px;border-radius:10px;">
+                        <h4 style="font-size:12px;font-weight:700;color:#D81B60;margin-bottom:8px;">Rendimiento del insumo</h4>
+                        <label for="insumo-real-rendimiento" class="form-label">¿Cuántas piezas rinde esta presentación?</label>
+                        <input type="number" id="insumo-real-rendimiento" class="form-input" min="0" step="0.01" placeholder="Ej. 6 (opcional)">
+                        <p style="font-size:10px;color:#8A7A78;margin-top:8px;">Ejemplo: si el metro de gabardina cuesta $12.000 y rinde 6 piezas, cada pieza cuesta $2.000.</p>
+                    </div>
+
+                    <div id="insumo-real-resumen-costos" style="background:#F7F8FA;border-radius:8px;padding:10px;font-size:12px;color:#4A3E3D;">Completá los datos para ver los costos calculados.</div>
+
+                    <div style="display:flex; gap:10px; margin-top:8px;">
+                        <button type="button" onclick="cerrarModalNuevoInsumo()"
+                            style="width:35%; background:#F5F5F5; border:none; padding:12px; font-weight:700; border-radius:10px; cursor:pointer;">
+                            Cancelar
+                        </button>
+
+                        <button type="submit" class="btn-action-pastel"
+                            style="width:65%; justify-content:center; padding:12px;">
+                            Guardar Insumo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: COMPARADOR DE DISTRIBUIDORAS -->
+        <!-- ============================================================ -->
+
+        <div id="modal-balanza-sucursales" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width:520px;">
+
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                    <h3 id="balanza-insumo-titulo"
+                        style="font-size:17px; font-weight:700; color:#4A3E3D;">
+                        Balanza de Precios
+                    </h3>
+
+                    <button type="button" onclick="cerrarModalBalanza()"
+                        style="background:none; border:none; font-size:22px; cursor:pointer;">
+                        &times;
+                    </button>
+                </div>
+
+                <input type="hidden" id="balanza-insumo-id">
+
+                <div class="table-container" style="margin-top:14px;">
+                    <table class="excel-table">
+                        <thead>
+                            <tr>
+                                <th style="padding:10px;">Distribuidora</th>
+                                <th style="padding:10px;">Precio</th>
+                                <th style="padding:10px; text-align:center;">Acción</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tbody-balanza-sucursales">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;">
+                    <input type="text" id="balanza-nueva-sucursal"
+                        class="form-input" placeholder="Nombre del comercio">
+
+                    <input type="number" id="balanza-nuevo-precio"
+                        class="form-input" min="0" step="0.01"
+                        placeholder="Precio">
+                </div>
+
+                <button type="button" onclick="agregarPrecioSucursalBalanza()"
+                    class="btn-action-pastel"
+                    style="width:100%; justify-content:center; margin-top:10px;">
+                    + Agregar precio
+                </button>
+
+                <button type="button" onclick="cerrarModalBalanza()"
+                    style="width:100%; background:#F5F5F5; border:none; padding:11px; font-weight:700; border-radius:10px; cursor:pointer; margin-top:10px;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- PESTAÑA 3: PRODUCTOS -->
+        <!-- ============================================================ -->
+
+        <div id="pestaña-productos"
+            style="display:flex; flex-direction:column; gap:16px; width:100%;"
+            class="hidden">
+
+            <div class="table-toolbar">
+                <h2 style="font-size:16px; font-weight:700; color:#4A3E3D;">
+                    Productos / Catálogo 🌸
+                </h2>
+
+                <div style="display:flex; align-items:center; gap:12px; justify-content:flex-end; width:100%;">
+
+                    <input type="text"
+                        id="filtro-productos-input"
+                        oninput="filtrarProductosReales()"
+                        placeholder="🔍 Buscar producto..."
+                        class="search-box"
+                        style="max-width:280px;">
+
+                    <button onclick="abrirModalNuevoProducto()"
+                        class="btn-action-pastel">
+                        <i data-lucide="plus" style="width:16px; height:16px;"></i>
+                        <span>+ Producto</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="responsive-table-wrapper">
+                    <table class="excel-table">
+                        <thead>
+                            <tr>
+                                <th style="padding:12px 16px;">Producto</th>
+                                <th style="padding:12px 16px;">Costo Producción</th>
+                                <th style="padding:12px 16px;">Precio Venta</th>
+                                <th style="padding:12px 16px;">Stock / Mínimo</th>
+                                <th style="text-align:center; width:140px; padding:12px 16px;">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tbody-productos-reales">
+                            <!-- Filas generadas desde app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: CREAR / MODIFICAR PRODUCTO -->
+        <!-- ============================================================ -->
+
+        <div id="modal-alta-producto" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width:560px; max-height:90vh; overflow-y:auto;">
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 id="titulo-modal-producto"
+                        style="font-size:18px; font-weight:700; color:#4A3E3D;">
+                        Nuevo Producto para Catálogo
+                    </h3>
+
+                    <button type="button" onclick="cerrarModalNuevoProducto()"
+                        style="background:none; border:none; font-size:22px; cursor:pointer;">
+                        &times;
+                    </button>
+                </div>
+
+                <form id="form-real-producto" onsubmit="guardarProductoReal(event)"
+                    style="display:flex; flex-direction:column; gap:12px;">
+
+                    <input type="hidden" id="producto-real-id">
+
+                    <div>
+                        <label for="prod-real-nombre" class="form-label">
+                            Nombre del producto
+                        </label>
+
+                        <input type="text" id="prod-real-nombre"
+                            class="form-input" placeholder="Ej. Pulsera artesanal"
+                            required>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label for="prod-real-venta" class="form-label">
+                                Precio de venta ($)
+                            </label>
+
+                            <input type="number" id="prod-real-venta"
+                                class="form-input" min="0" step="0.01"
+                                placeholder="0.00" required>
+                        </div>
+
+                        <div>
+                            <label for="prod-real-stock" class="form-label">
+                                Stock actual
+                            </label>
+
+                            <input type="number" id="prod-real-stock"
+                                class="form-input" min="0" step="1"
+                                placeholder="0" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="prod-real-minimo" class="form-label">
+                            Stock mínimo de alerta
+                        </label>
+
+                        <input type="number" id="prod-real-minimo"
+                            class="form-input" min="0" step="1"
+                            placeholder="Ej. 5" required>
+                    </div>
+
+                    <!-- Receta -->
+                    <div style="display:flex; align-items:center; gap:8px; margin:4px 0; background:#FFF5F7; padding:10px; border-radius:10px; border:1px dashed #F48FB1;">
+                        <input type="checkbox" id="chk-info-adicional"
+                            onchange="toggleInfoAdicional()"
+                            style="width:16px; height:16px; cursor:pointer;">
+
+                        <label for="chk-info-adicional"
+                            style="font-size:12px; font-weight:700; color:#D81B60; cursor:pointer;">
+                            🌸 Agregar Información Adicional (Receta e Insumos)
+                        </label>
+                    </div>
+
+                    <div id="seccion-receta-adicional" class="hidden"
+                        style="display:flex; flex-direction:column; gap:12px; border-top:1px dashed #E2E8F0; padding-top:10px;">
+
+                        <div style="background:#FAFAFA; border:1px solid #E2E8F0; padding:12px; border-radius:12px; display:flex; flex-direction:column; gap:10px;">
+
+                            <h4 style="font-size:11px; font-weight:700; color:#4A3E3D; text-transform:uppercase;">
+                                Añadir Insumo a la Receta
+                            </h4>
+
+                            <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:8px;">
+                                <select id="receta-insumo-select"
+                                    class="form-select" style="background:white;">
+                                    <option value="">-- Seleccionar Insumo --</option>
+                                </select>
+
+                                <input type="number" id="receta-insumo-cantidad"
+                                    step="0.01" min="0"
+                                    placeholder="Cantidad u/m"
+                                    class="form-input"
+                                    style="background:white; text-align:center;">
+                            </div>
+
+                            <button type="button"
+                                onclick="agregarInsumoARecetaTemporal()"
+                                class="btn-action-pastel"
+                                style="width:100%; justify-content:center; height:36px; font-size:12px;">
+                                + Añadir Material
+                            </button>
+                        </div>
+
+                        <div class="table-container" style="max-height:120px; overflow-y:auto;">
+                            <table class="excel-table" style="font-size:12px;">
+                                <thead>
+                                    <tr style="background:#FAFAFA;">
+                                        <th style="padding:6px 10px;">Material</th>
+                                        <th style="padding:6px 10px; text-align:center;">Cantidad</th>
+                                        <th style="padding:6px 10px; text-align:right;">Costo Parcial</th>
+                                        <th style="padding:6px 10px; text-align:center; width:40px;"></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="tbody-receta-temporal">
+                                    <!-- Materiales de receta -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Calculadora de costos -->
+                        <div style="background:#FFF3EB; border:1px solid #FFE0B2; padding:12px; border-radius:12px; display:flex; flex-direction:column; gap:8px; font-size:13px;">
+
+                            <div style="display:flex; justify-content:space-between; font-weight:700; color:#E65100;">
+                                <span>Precio de Producción (Costo):</span>
+                                <span id="calc-costo-total">$0.00</span>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:1px dashed #FFD1B3; padding-top:8px;">
+                                <label for="prod-real-mano-obra"
+                                    style="font-size:11px; font-weight:700; color:#8A7A78; text-transform:uppercase;">
+                                    Mano de Obra ($)
+                                </label>
+
+                                <input type="number" id="prod-real-mano-obra"
+                                    placeholder="Ej. 500"
+                                    oninput="calcularPrecioSugeridoReal()"
+                                    class="form-input"
+                                    style="background:white; height:36px; width:110px; text-align:right; padding-right:8px;"
+                                    min="0" step="0.01">
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:10px; align-items:center; border-top:1px dashed #FFD1B3; padding-top:8px;">
+                                <div>
+                                    <label for="prod-real-margen"
+                                        style="display:block; font-size:11px; font-weight:700; color:#8A7A78; text-transform:uppercase; margin-bottom:2px;">
+                                        Margen de Ganancia
+                                    </label>
+
+                                    <input type="number" id="prod-real-margen"
+                                        value="100" oninput="calcularPrecioSugeridoReal()"
+                                        class="form-input"
+                                        style="background:white; height:36px;">
+                                </div>
+
+                                <div>
+                                    <label for="prod-real-tipo-margen"
+                                        style="display:block; font-size:11px; font-weight:700; color:#8A7A78; text-transform:uppercase; margin-bottom:2px;">
+                                        Unidad Margen
+                                    </label>
+
+                                    <select id="prod-real-tipo-margen"
+                                        onchange="calcularPrecioSugeridoReal()"
+                                        class="form-select"
+                                        style="background:white; height:36px;">
+                                        <option value="porcentaje">Porcentaje (%)</option>
+                                        <option value="entero">Entero ($)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; font-weight:700; color:#2E7D32; border-top:1px dashed #FFE0B2; padding-top:6px; font-size:14px;">
+                            <span>Precio Sugerido Final:</span>
+                            <span id="calc-precio-sugerido">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div style="display:flex; gap:10px; margin-top:6px;">
+                        <button type="button"
+                            onclick="cerrarModalNuevoProducto()"
+                            style="width:35%; background:#F5F5F5; border:none; padding:11px; font-weight:700; border-radius:12px; cursor:pointer; font-family:'Quicksand';">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                            style="width:65%; background:#FCE4C8; border:none; padding:11px; font-weight:700; border-radius:12px; cursor:pointer; font-family:'Quicksand';">
+                            Guardar en Catálogo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- PESTAÑA 4: CAJA REGISTRADORA -->
+        <!-- ============================================================ -->
+
+        <div id="pestaña-ventas" class="split-box hidden">
+
+            <!-- BLOQUE IZQUIERDO: HISTORIAL -->
+            <div style="display:flex; flex-direction:column; gap:16px;">
+
+                <!-- Filtros de tiempo -->
+                <div style="display:flex; align-items:center; gap:10px; background-color:rgba(255,255,255,0.6); padding:12px; border-radius:12px; border:1px solid #EBEBEB; flex-wrap:wrap;">
+
+                    <h3 style="font-size:14px; font-weight:700; color:#4A3E3D; margin-right:4px;">
+                        Filtro Caja:
+                    </h3>
+
+                    <button onclick="cambiarFiltroTiempoCaja('DIA')"
+                        id="btn-filtro-dia"
+                        class="btn-action-pastel"
+                        style="padding:8px 14px; font-size:12px;">
+                        <i data-lucide="calendar-days" style="width:14px; height:14px;"></i>
+                        <span>Día</span>
+                    </button>
+
+                    <button onclick="cambiarFiltroTiempoCaja('SEMANA')"
+                        id="btn-filtro-semana"
+                        class="btn-action-pastel"
+                        style="padding:8px 14px; font-size:12px; background-color:transparent; border:1px solid #F48FB1; color:#D81B60;">
+                        <i data-lucide="calendar-range" style="width:14px; height:14px;"></i>
+                        <span>Semana</span>
+                    </button>
+
+                    <button onclick="cambiarFiltroTiempoCaja('MES')"
+                        id="btn-filtro-mes"
+                        class="btn-action-pastel"
+                        style="padding:8px 14px; font-size:12px; background-color:transparent; border:1px solid #F48FB1; color:#D81B60;">
+                        <i data-lucide="calendar-days" style="width:14px; height:14px;"></i>
+                        <span>Mes</span>
+                    </button>
+                </div>
+
+                <!-- Historial de ventas -->
+                <h3 style="font-size:15px; font-weight:700; color:#4A3E3D; margin-top:4px;">
+                    Órdenes Recientes
+                </h3>
+
+                <div id="contenedor-historial-ventas-real"
+                    style="display:flex; flex-direction:column; gap:12px; overflow-y:auto; max-height:480px; padding-right:4px;">
+                    <!-- Las ventas se cargarán dinámicamente desde app.js -->
+                </div>
+            </div>
+
+            <!-- BLOQUE DERECHO: CAJA Y MOSTRADOR -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+
+                <!-- Resumen de caja -->
+                <div class="card" style="padding:16px;">
+
+                    <h3 id="titulo-resumen-periodo"
+                        style="font-size:15px; font-weight:700; color:#4A3E3D; margin-bottom:10px;">
+                        Resumen de Caja (DIA)
+                    </h3>
+
+                    <div class="analytics-grid">
+
+                        <div class="analytics-cell" style="grid-column:span 2;">
+                            <span id="caja-total-recaudado"
+                                style="font-size:22px; font-weight:700; color:#2E7D32; display:block;">
+                                $ 0.00 ARS
+                            </span>
+
+                            <span style="font-size:9px; font-weight:700; color:#999999; text-transform:uppercase;">
+                                Total Recaudado
+                            </span>
+                        </div>
+
+                        <div class="analytics-cell">
+                            <span id="caja-cantidad-ventas"
+                                style="font-size:22px; font-weight:700; color:#4A3E3D; display:block;">
+                                0
+                            </span>
+
+                            <span style="font-size:9px; font-weight:700; color:#999999; text-transform:uppercase;">
+                                Tickets
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carrito multiproducto -->
+                <div class="card" style="padding:20px; gap:14px;">
+
+                    <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #FAFAFA; padding-bottom:8px;">
+                        <i data-lucide="shopping-bag"
+                            style="color:#D81B60; width:18px; height:18px;">
+                        </i>
+
+                        <h3 style="font-size:15px; font-weight:700; color:#4A3E3D;">
+                            Armar Ticket de Venta
+                        </h3>
+                    </div>
+
+                    <!-- Selección de producto -->
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+
+                        <div>
+                            <label for="carrito-producto-select"
+                                style="display:block; font-size:11px; font-weight:700; color:#8A7A78; text-transform:uppercase; margin-bottom:4px;">
+                                Seleccionar Accesorio
+                            </label>
+
+                            <select id="carrito-producto-select" class="form-select">
+                                <option value="">-- Elige del catálogo --</option>
+                            </select>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:10px; align-items:flex-end;">
+
+                            <div>
+                                <label for="carrito-cantidad-input"
+                                    style="display:block; font-size:11px; font-weight:700; color:#8A7A78; text-transform:uppercase; margin-bottom:4px;">
+                                    Cantidad
+                                </label>
+
+                                <input type="number"
+                                    id="carrito-cantidad-input"
+                                    min="1"
+                                    value="1"
+                                    class="form-input"
+                                    style="text-align:center;">
+                            </div>
+
+                            <button type="button"
+                                onclick="agregarLineaAlCarritoTemporal()"
+                                class="btn-action-pastel"
+                                style="width:100%; justify-content:center; height:42px; font-size:12px; background-color:#E3F2FD; color:#1565C0; border:1px solid #BBDEFB;">
+
+                                <i data-lucide="shopping-cart" style="width:14px; height:14px;"></i>
+                                <span>+ Al Carrito</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Artículos del ticket -->
+                    <div>
+                        <label
+                            style="display:block; font-size:11px; font-weight:700; color:#8A7A78; text-transform:uppercase; margin-bottom:4px;">
+                            Artículos en la Orden Actual
+                        </label>
+
+                        <div class="table-container" style="max-height:140px; overflow-y:auto;">
+                            <table class="excel-table" style="font-size:13px;">
+                                <thead>
+                                    <tr style="background:#FAFAFA;">
+                                        <th style="padding:6px 10px;">Descripción</th>
+                                        <th style="padding:6px 10px; text-align:right; width:90px;">
+                                            Subtotal
+                                        </th>
+                                        <th style="padding:6px 10px; text-align:center; width:40px;"></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="tbody-carrito-mostrador">
+                                    <!-- Filas de productos añadidos -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Total, pago y confirmación -->
+                    <div style="border-top:1px dashed #E2E8F0; padding-top:12px; display:flex; flex-direction:column; gap:10px;">
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:15px; color:#D81B60;">
+                            <span>Total del Ticket:</span>
+
+                            <span id="label-total-carrito-mostrador">
+                                $ 0.00 ARS
+                            </span>
+                        </div>
+
+                        <div>
+                            <label for="carrito-metodo-pago"
+                                style="display:block; font-size:11px; font-weight:700; color:#8A7A78; text-transform:uppercase; margin-bottom:4px;">
+                                Medio de Pago
+                            </label>
+
+                            <select id="carrito-metodo-pago" class="form-select">
+                                <option value="Efectivo">Efectivo 💵</option>
+                                <option value="Transferencia">Transferencia 📱</option>
+                            </select>
+                        </div>
+
+                        <button type="button"
+                            onclick="confirmarYRegistrarVentaConjunta()"
+                            class="btn-action-pastel"
+                            style="width:100%; justify-content:center; padding:12px; font-size:14px; margin-top:4px;">
+
+                            <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+
+                            <span>Confirmar Venta Conjunta</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================ -->
+    <!-- LÓGICA DE NAVEGACIÓN ENTRE PESTAÑAS -->
+    <!-- ============================================================ -->
+
+    <script>
+        function cambiarPestaña(pestañaId) {
+            const pestañas = ['resumen', 'insumos', 'productos', 'ventas'];
+
+            pestañas.forEach(p => {
+                const elemento = document.getElementById(`pestaña-${p}`);
+                const boton = document.getElementById(`btn-${p}`);
+
+                if (elemento && boton) {
+                    if (p === pestañaId) {
+                        elemento.classList.remove('hidden');
+                        boton.classList.add('active');
+                    } else {
+                        elemento.classList.add('hidden');
+                        boton.classList.remove('active');
+                    }
+                }
+            });
+
+            // Actualizar los selectores cuando se abre la caja.
+            if (
+                pestañaId === 'ventas' &&
+                typeof cargarSelectorProductosVenta === 'function'
+            ) {
+                cargarSelectorProductosVenta();
+            }
+        }
+
+
+        // ============================================================
+        // EXPORTAR BACKUP
+        // ============================================================
+
+        async function exportarDatos() {
+            try {
+                const db = await obtenerDB();
+
+                const getTableData = (tableName) => {
+                    return new Promise((resolve, reject) => {
+                        try {
+                            const tx = db.transaction(tableName, 'readonly');
+                            const store = tx.objectStore(tableName);
+                            const request = store.getAll();
+
+                            request.onsuccess = () => resolve(request.result);
+                            request.onerror = () => reject(request.error);
+
+                        } catch (e) {
+                            reject(
+                                new Error(
+                                    "La tabla " + tableName +
+                                    " no existe o no es accesible."
+                                )
+                            );
+                        }
+                    });
+                };
+
+                // Obtener información de las tablas principales.
+                const insumos = await getTableData('insumos').catch(() => []);
+                const productos = await getTableData('productos').catch(() => []);
+                const ventas = await getTableData('ventas').catch(() => []);
+
+                const backup = {
+                    fecha: new Date().toISOString(),
+                    datos: {
+                        insumos,
+                        productos,
+                        ventas
+                    }
+                };
+
+                // Crear el archivo JSON.
+                const blob = new Blob(
+                    [JSON.stringify(backup, null, 2)],
+                    { type: 'application/json' }
+                );
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+
+                a.href = url;
+                a.download = `backup_lety_${new Date().toLocaleDateString()}.json`;
+
+                a.click();
+
+                URL.revokeObjectURL(url);
+
+                alert("✅ Backup descargado con éxito.");
+
+            } catch (error) {
+                console.error("Error al exportar:", error);
+                alert("❌ Error: " + error.message);
+            }
+        }
+
+
+        // ============================================================
+        // RESTAURAR BACKUP
+        // ============================================================
+
+        async function importarDatos() {
+
+            if (!confirm(
+                "⚠️ IMPORTANTE: Esto borrará todos los datos actuales y los reemplazará por los del archivo. ¿Continuar?"
+            )) {
+                return;
+            }
+
+            const input = document.createElement('input');
+
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = async (e) => {
+
+                const file = e.target.files[0];
+
+                if (!file) return;
+
+                const reader = new FileReader();
+
+                reader.onload = async (event) => {
+
+                    try {
+                        const backup = JSON.parse(event.target.result);
+
+                        if (!backup.datos) {
+                            throw new Error("Archivo de backup no válido");
+                        }
+
+                        const db = await obtenerDB();
+
+                        // Restaurar cada tabla incluida en el backup.
+                        for (const tabla in backup.datos) {
+
+                            const tx = db.transaction(tabla, 'readwrite');
+                            const store = tx.objectStore(tabla);
+
+                            await store.clear();
+
+                            backup.datos[tabla].forEach(item => {
+                                store.put(item);
+                            });
+                        }
+
+                        alert(
+                            "✅ Datos restaurados con éxito. Reiniciando aplicación..."
+                        );
+
+                        location.reload();
+
+                    } catch (error) {
+                        console.error("Error al importar:", error);
+
+                        alert(
+                            "❌ Error al importar: " + error.message
+                        );
+                    }
+                };
+
+                reader.readAsText(file);
+            };
+
+            input.click();
+        }
+    </script>
+
+
+    <!-- ============================================================ -->
+    <!-- CONEXIÓN CON LOS ARCHIVOS JAVASCRIPT -->
+    <!-- ============================================================ -->
+
+<script src="./js/db.js"></script>
+<script src="./js/lucide.min.js"></script>
+<script src="./js/app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            ["insumo-real-precio", "insumo-real-cantidad-presentacion", "insumo-real-rendimiento"].forEach(id => {
+                document.getElementById(id)?.addEventListener("input", actualizarResumenCostoInsumo);
+            });
+        });
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- INICIALIZACIÓN DE ICONOS -->
+    <!-- ============================================================ -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+
+
+    <!-- ============================================================ -->
+    <!-- REGISTRO DEL SERVICE WORKER -->
+    <!-- ============================================================ -->
+
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+
+                navigator.serviceWorker
+                    .register("./service-worker.js")
+                    .catch(err => {
+                        console.warn(
+                            "Service worker no registrado:",
+                            err
+                        );
+                    });
+
+            });
+        }
+    </script>
+
+</body>
+</html>
