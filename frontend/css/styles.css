@@ -765,3 +765,144 @@ main {
         grid-template-columns: 1fr;
     }
 }
+
+/* =========================================================
+   RESPONSIVE ESPECÍFICO - PESTAÑA DE VENTAS
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    /* Contenedor principal de ventas */
+    #pestaña-ventas {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) !important;
+        width: 100%;
+        min-width: 0;
+        gap: 16px;
+    }
+
+    #pestaña-ventas > div {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Filtros de caja */
+    #pestaña-ventas > div:first-child > div:first-child {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    #pestaña-ventas > div:first-child > div:first-child h3 {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    #pestaña-ventas .btn-action-pastel {
+        width: auto;
+        max-width: 100%;
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    /* Historial de ventas */
+    #contenedor-historial-ventas-real {
+        width: 100%;
+        max-height: 420px !important;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* Estadísticas de caja */
+    #pestaña-ventas .analytics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    #pestaña-ventas .analytics-cell {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    #pestaña-ventas .analytics-cell[style*="grid-column:span 2"] {
+        grid-column: 1 / -1;
+    }
+
+    /* Tarjetas de la caja */
+    #pestaña-ventas .card {
+        width: 100%;
+        min-width: 0;
+        padding: 14px !important;
+    }
+
+    /* Selectores e inputs */
+    #pestaña-ventas select,
+    #pestaña-ventas input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Cantidad y botón Agregar al carrito */
+    #pestaña-ventas .card > div > div[style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) !important;
+        gap: 8px !important;
+    }
+
+    /* Tabla del carrito */
+    #pestaña-ventas .table-container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    #pestaña-ventas .table-container .excel-table {
+        width: 100%;
+        min-width: 0 !important;
+        table-layout: fixed;
+        font-size: 11px !important;
+    }
+
+    #pestaña-ventas .table-container .excel-table th,
+    #pestaña-ventas .table-container .excel-table td {
+        padding: 8px 5px;
+        overflow-wrap: anywhere;
+    }
+
+    /* Total del ticket */
+    #pestaña-ventas #label-total-carrito-mostrador {
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Ajustes para celulares pequeños */
+@media (max-width: 420px) {
+
+    #pestaña-ventas .card {
+        padding: 12px !important;
+    }
+
+    #pestaña-ventas .analytics-grid {
+        gap: 6px;
+    }
+
+    #pestaña-ventas .analytics-cell {
+        padding: 8px 5px;
+    }
+
+    #pestaña-ventas #caja-total-recaudado,
+    #pestaña-ventas #caja-cantidad-ventas {
+        font-size: 18px !important;
+    }
+
+    #pestaña-ventas > div:first-child > div:first-child {
+        gap: 6px;
+    }
+
+    #pestaña-ventas > div:first-child > div:first-child .btn-action-pastel {
+        padding: 9px 6px;
+        font-size: 11px;
+    }
+}
