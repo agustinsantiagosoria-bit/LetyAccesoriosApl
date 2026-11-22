@@ -16,11 +16,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
+  build:
+    name: Preparar aplicación
     runs-on: ubuntu-latest
 
     steps:
@@ -30,11 +28,21 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Preparar frontend
+      - name: Subir frontend
         uses: actions/upload-pages-artifact@v3
         with:
           path: frontend
 
-      - name: Publicar sitio
+  deploy:
+    name: Publicar sitio
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Publicar en GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
